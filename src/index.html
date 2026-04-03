@@ -3014,8 +3014,10 @@
                                 <div class="space-y-6 text-gray-700">
                                     <p class="text-lg font-bold" style="text-indent: 2em;">这是一款专为中小电商卖家打造的利润核算工具!一键导入表格+录入推广费，即可快速算出精准利润，多链接、小单量链接也能自动统计不遗漏。集数据概览、成本/规格/店铺/采购管理于一体，更自带智能新品定价工具，自动算出折扣/优惠券后定价，自动核算保本投产，新手也能轻松定价、高效管店。</p>
                                     
+                                    <div class="h-8"></div>
+                                    
                                     <div>
-                                        <h4 class="font-bold text-xl mb-4">特性</h4>
+                                        <h4 class="font-bold text-xl mb-4">功能</h4>
                                         <ol class="list-decimal pl-6 space-y-3 font-bold">
                                             <li>数据计算区:导入表格，输入推广费，大小链接全部算出，解决手工算利润耗时长、易漏，小链接多、单量少被忽略不算的链接，白白亏掉利润的问题，店铺越多越省时</li>
                                             <li>智能新品定价工具:解决新手定价、保本投产计算难题，自动算出折扣/优惠券后定价，自动核算保本投产;同时解决多链接、活动价管理难、利润难把控的问题，且支持关联规格成本，成本更新后利润、保本投产同步重算。</li>
@@ -3059,11 +3061,12 @@
                                 <div class="mb-6">
                                     <h3 class="text-2xl font-semibold text-gray-800">关于软件</h3>
                                 </div>
-                                <div class="space-y-6">
+                                <div>
                                     <div>
-                                        <p class="text-lg text-blue-600 font-bold">版本：V1.0.2</p>
+                                        <p class="text-lg text-blue-600 font-bold">当前版本：V1.0.2</p>
                                     </div>
-                                    <div class="mt-8">
+                                    
+                                    <div class="mt-12">
                                         <h3 class="text-xl font-bold text-gray-800 mb-4">意见反馈</h3>
                                         <div class="space-y-4 text-gray-700 font-bold">
                                             <p>您好！</p>
@@ -26982,9 +26985,13 @@ ${shopsMap[link.shopId]}
         
         // 根据商品ID获取店铺名称
         function getShopNameByProductId(productId) {
+            // 转换为字符串进行比较，确保数字型和文本型商品ID都能匹配
+            const productIdStr = String(productId);
             for (const shop of shops) {
-                if (shop.productIds.includes(productId)) {
-                    return shop.name;
+                for (const shopProductId of shop.productIds) {
+                    if (String(shopProductId) === productIdStr) {
+                        return shop.name;
+                    }
                 }
             }
             return '未分类';
@@ -27955,15 +27962,15 @@ ${shopsMap[link.shopId]}
             const possibleFields = ['商品ID', '商品id', '商品编号', '商品编码', 'item_id', 'product_id'];
             
             for (const field of possibleFields) {
-                if (row[field]) {
-                    return row[field];
+                if (row[field] && String(row[field]).trim() !== '') {
+                    return String(row[field]).trim();
                 }
             }
             
             // 如果没找到，尝试第一个非空字段
             for (const key in row) {
-                if (row[key]) {
-                    return row[key];
+                if (row[key] && String(row[key]).trim() !== '') {
+                    return String(row[key]).trim();
                 }
             }
             
@@ -27996,7 +28003,7 @@ ${shopsMap[link.shopId]}
         
         // 尝试识别数量字段
         function findQuantityField(row) {
-            const possibleFields = ['数量', '销量', '件数', 'quantity', 'num'];
+            const possibleFields = ['数量', '商品数量', '购买数量'];
             
             for (const field of possibleFields) {
                 if (row[field] !== undefined && !isNaN(parseFloat(row[field]))) {
@@ -28011,10 +28018,46 @@ ${shopsMap[link.shopId]}
         function findRevenueField(row) {
             const possibleFields = ['实收', '实收(元)', '收入', '金额', '实收款', 'revenue', 'amount', 'price'];
             
+            // 标准化字段名的函数，将中文括号转换为英文括号
+            function normalizeFieldName(fieldName) {
+                return fieldName.replace(/（/g, '(').replace(/）/g, ')');
+            }
+            
+            // 首先尝试直接匹配
             for (const field of possibleFields) {
                 if (row[field] !== undefined) {
                     // 智能处理文本型数字
                     let value = row[field];
+                    
+                    // 如果是字符串，进行清理和转换
+                    if (typeof value === 'string') {
+                        // 去除货币符号、千分位分隔符和空格
+                        value = value.replace(/[¥$￥,，\s]/g, '');
+                        
+                        // 去除中文金额单位
+                        value = value.replace(/[元角分整]/g, '');
+                        
+                        // 处理百分比（如果需要）
+                        if (value.includes('%')) {
+                            value = value.replace('%', '') / 100;
+                        }
+                    }
+                    
+                    // 转换为数字
+                    const numValue = parseFloat(value);
+                    
+                    if (!isNaN(numValue)) {
+                        return numValue;
+                    }
+                }
+            }
+            
+            // 如果直接匹配失败，尝试标准化字段名后匹配
+            for (const [fieldName, fieldValue] of Object.entries(row)) {
+                const normalizedField = normalizeFieldName(fieldName);
+                if (possibleFields.includes(normalizedField) && fieldValue !== undefined) {
+                    // 智能处理文本型数字
+                    let value = fieldValue;
                     
                     // 如果是字符串，进行清理和转换
                     if (typeof value === 'string') {
@@ -28617,9 +28660,13 @@ ${shopsMap[link.shopId]}
         
         // 根据商品ID获取店铺名称
         function getShopNameByProductId(productId) {
+            // 转换为字符串进行比较，确保数字型和文本型商品ID都能匹配
+            const productIdStr = String(productId);
             for (const shop of shops) {
-                if (shop.productIds.includes(productId)) {
-                    return shop.name;
+                for (const shopProductId of shop.productIds) {
+                    if (String(shopProductId) === productIdStr) {
+                        return shop.name;
+                    }
                 }
             }
             return '未分类';
@@ -30164,9 +30211,13 @@ ${shopsMap[link.shopId]}
         
         // 根据商品ID获取店铺名称
         function getShopNameByProductId(productId) {
+            // 转换为字符串进行比较，确保数字型和文本型商品ID都能匹配
+            const productIdStr = String(productId);
             for (const shop of shops) {
-                if (shop.productIds.includes(productId)) {
-                    return shop.name;
+                for (const shopProductId of shop.productIds) {
+                    if (String(shopProductId) === productIdStr) {
+                        return shop.name;
+                    }
                 }
             }
             return '未分类';
@@ -31533,9 +31584,13 @@ ${shopsMap[link.shopId]}
         
         // 根据商品ID获取店铺名称
         function getShopNameByProductId(productId) {
+            // 转换为字符串进行比较，确保数字型和文本型商品ID都能匹配
+            const productIdStr = String(productId);
             for (const shop of shops) {
-                if (shop.productIds.includes(productId)) {
-                    return shop.name;
+                for (const shopProductId of shop.productIds) {
+                    if (String(shopProductId) === productIdStr) {
+                        return shop.name;
+                    }
                 }
             }
             return '未分类';
@@ -32390,8 +32445,16 @@ ${shopsMap[link.shopId]}
         
         // 获取店铺平台信息
         function getShopPlatformByProductId(productId) {
-            const shop = shops.find(shop => shop.productIds.includes(productId));
-            return shop ? shop.platform : null;
+            // 转换为字符串进行比较，确保数字型和文本型商品ID都能匹配
+            const productIdStr = String(productId);
+            for (const shop of shops) {
+                for (const shopProductId of shop.productIds) {
+                    if (String(shopProductId) === productIdStr) {
+                        return shop.platform || null;
+                    }
+                }
+            }
+            return null;
         }
 
         // 获取平台对应的颜色类
@@ -34128,9 +34191,13 @@ ${shopsMap[link.shopId]}
         
         // 根据商品ID获取店铺名称
         function getShopNameByProductId(productId) {
+            // 转换为字符串进行比较，确保数字型和文本型商品ID都能匹配
+            const productIdStr = String(productId);
             for (const shop of shops) {
-                if (shop.productIds.includes(productId)) {
-                    return shop.name;
+                for (const shopProductId of shop.productIds) {
+                    if (String(shopProductId) === productIdStr) {
+                        return shop.name;
+                    }
                 }
             }
             return '未分类';
@@ -36139,9 +36206,13 @@ ${shopsMap[link.shopId]}
         
         // 根据商品ID获取店铺名称
         function getShopNameByProductId(productId) {
+            // 转换为字符串进行比较，确保数字型和文本型商品ID都能匹配
+            const productIdStr = String(productId);
             for (const shop of shops) {
-                if (shop.productIds.includes(productId)) {
-                    return shop.name;
+                for (const shopProductId of shop.productIds) {
+                    if (String(shopProductId) === productIdStr) {
+                        return shop.name;
+                    }
                 }
             }
             return '未分类';
@@ -37148,9 +37219,13 @@ ${shopsMap[link.shopId]}
         
         // 根据商品ID获取店铺名称
         function getShopNameByProductId(productId) {
+            // 转换为字符串进行比较，确保数字型和文本型商品ID都能匹配
+            const productIdStr = String(productId);
             for (const shop of shops) {
-                if (shop.productIds.includes(productId)) {
-                    return shop.name;
+                for (const shopProductId of shop.productIds) {
+                    if (String(shopProductId) === productIdStr) {
+                        return shop.name;
+                    }
                 }
             }
             return '未分类';
