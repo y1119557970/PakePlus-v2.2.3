@@ -1881,7 +1881,7 @@
                 @apply bg-blue-700;
             }
             .product-card-hover {
-                @apply transition-all duration-300 hover:shadow-lg hover:translate-y-[-2px] hover:border-gray-300;
+                @apply transition-all duration-300 hover:shadow-lg hover:border-gray-300;
             }
             
             /* 商品卡片分隔线样式 */
@@ -3061,7 +3061,7 @@
                                 </div>
                                 <div class="space-y-6">
                                     <div>
-                                        <p class="text-lg text-blue-600 font-bold">版本：V1.0.1</p>
+                                        <p class="text-lg text-blue-600 font-bold">版本：V1.0.2</p>
                                     </div>
                                     <div class="mt-8">
                                         <h3 class="text-xl font-bold text-gray-800 mb-4">意见反馈</h3>
@@ -10462,12 +10462,6 @@
                 // 添加拖拽中的样式
                 card.classList.add('dragging');
                 
-                // 创建拖拽时的占位元素
-                dragGhost = document.createElement('div');
-                dragGhost.className = 'drag-ghost';
-                dragGhost.style.height = card.offsetHeight + 'px';
-                dragGhost.innerHTML = '<div class="flex items-center justify-center text-blue-500"><i class="fa fa-cube mr-2"></i> 拖动中...</div>';
-                
                 // 创建放置位置的占位框
                 placeholder = document.createElement('div');
                 placeholder.className = 'bg-blue-100 border-2 border-dashed border-blue-500 rounded-md p-3 mb-3 transition-all duration-200 cursor-pointer';
@@ -10488,7 +10482,7 @@
                 // 延迟显示占位符
                 setTimeout(() => {
                     if (card.parentNode) {
-                        card.parentNode.insertBefore(dragGhost, card);
+                        // 不再使用dragGhost
                     }
                 }, 0);
             }
@@ -10518,7 +10512,7 @@
                     // 计算实际的目标产品索引（排除占位框和拖拽占位元素）
                     let targetProductIndex = 0;
                     for (let i = 0; i < placeholderIndex; i++) {
-                        if (allElements[i] !== dragGhost && allElements[i] !== placeholder && allElements[i].classList.contains('product-card')) {
+                        if (allElements[i] !== placeholder && allElements[i].classList.contains('product-card')) {
                             targetProductIndex++;
                         }
                     }
@@ -10539,11 +10533,6 @@
                 
                 // 移除拖拽中的样式
                 draggedElement.classList.remove('dragging');
-                
-                // 移除占位元素
-                if (dragGhost && dragGhost.parentNode) {
-                    dragGhost.parentNode.removeChild(dragGhost);
-                }
                 
                 // 移除放置位置占位框
                 if (placeholder && placeholder.parentNode) {
@@ -10594,7 +10583,6 @@
                 draggedElement = null;
                 draggedLinkIndex = -1;
                 draggedProductIndex = -1;
-                dragGhost = null;
                 placeholder = null;
             }
 
@@ -11806,7 +11794,7 @@ ${shopsMap[link.shop]}
                                                         <th class="px-3 py-2 text-left text-xs font-medium text-primary uppercase tracking-wider whitespace-nowrap min-w-[80px]">
                                                             <div class="tooltip-container">
                                                                 保本投产
-                                                                <div class="tooltip-content">计算公式：售卖价/（售卖价-规格成本）/签收率（同退货率）</div>
+                                                                <div class="tooltip-content">计算公式：售卖价/（售卖价-规格成本）/签收率（反之退货率）</div>
                                                                 <div class="tooltip-arrow"></div>
                                                             </div>
                                                         </th>
@@ -12942,22 +12930,40 @@ ${shopsMap[link.shopId]}
                     setTimeout(() => {
                         console.log('尝试滚动到商品卡片 - 链接索引:', linkIndex, '商品索引:', productIndex);
                         
-                        // 方法1: 在商品详细页面中查找
-                        console.log('方法1: 在商品详细页面中查找');
-                        const detailLinkElement = document.querySelector(`[data-link-index="${linkIndex}"]`);
-                        console.log('找到详细页面链接元素:', detailLinkElement);
-                        
-                        if (detailLinkElement) {
-                            // 使用更通用的选择器查找商品卡片
-                            const detailProductCards = detailLinkElement.querySelectorAll('.product-card-hover, .product-card');
+                        // 方法1: 通过商品ID在商品详细页面中精确查找
+                        console.log('方法1: 通过商品ID在商品详细页面中精确查找');
+                        const displayContainer = document.getElementById('display-links-container');
+                        if (displayContainer) {
+                            // 获取目标商品ID
+                            const targetProductId = pricingData.links[linkIndex].products[productIndex].productId;
+                            console.log('目标商品ID:', targetProductId);
+                            
+                            // 获取所有商品卡片（排除链接卡片）
+                            // 链接卡片有 data-link-index 属性，商品卡片没有
+                            const allCards = displayContainer.querySelectorAll('.product-card-hover');
+                            console.log('在详细页面找到所有卡片数量:', allCards.length);
+                            
+                            // 过滤出真正的商品卡片（排除链接卡片）
+                            const detailProductCards = Array.from(allCards).filter(card => {
+                                // 链接卡片有 data-link-index 属性且包含链接标题
+                                const hasLinkIndex = card.hasAttribute('data-link-index');
+                                const hasLinkTitle = card.querySelector('h3.text-lg.font-semibold');
+                                // 如果同时有 data-link-index 和链接标题，说明是链接卡片，排除
+                                return !(hasLinkIndex && hasLinkTitle);
+                            });
                             console.log('在详细页面找到商品卡片数量:', detailProductCards.length);
                             
-                            if (detailProductCards.length > productIndex) {
-                                const targetCard = detailProductCards[productIndex];
-                                if (targetCard) {
-                                    console.log('找到目标商品卡片:', targetCard);
-                                    scrollToAndHighlightCard(targetCard);
-                                    return;
+                            // 遍历商品卡片，通过商品ID精确匹配
+                            for (let i = 0; i < detailProductCards.length; i++) {
+                                const card = detailProductCards[i];
+                                const productIdElement = card.querySelector('.font-bold.text-gray-900');
+                                if (productIdElement) {
+                                    const productIdText = productIdElement.textContent;
+                                    if (productIdText.includes(targetProductId)) {
+                                        console.log('通过商品ID找到目标商品卡片:', card);
+                                        scrollToAndHighlightCard(card);
+                                        return;
+                                    }
                                 }
                             }
                         }
@@ -12972,29 +12978,82 @@ ${shopsMap[link.shopId]}
                             const originalProductCards = originalLinkCard.querySelectorAll('.product-card-hover, .product-card');
                             console.log('在原始卡片中找到商品卡片数量:', originalProductCards.length);
                             
-                            if (originalProductCards.length > productIndex) {
-                                const targetCard = originalProductCards[productIndex];
-                                if (targetCard) {
-                                    console.log('找到目标商品卡片:', targetCard);
-                                    scrollToAndHighlightCard(targetCard);
+                            // 获取目标商品ID
+                            const targetProductId = pricingData.links[linkIndex].products[productIndex].productId;
+                            
+                            // 遍历商品卡片，通过商品ID精确匹配
+                            for (let i = 0; i < originalProductCards.length; i++) {
+                                const card = originalProductCards[i];
+                                const productIdElement = card.querySelector('.font-bold.text-gray-900');
+                                if (productIdElement) {
+                                    const productIdText = productIdElement.textContent;
+                                    if (productIdText.includes(targetProductId)) {
+                                        console.log('在原始卡片中通过商品ID找到目标商品卡片:', card);
+                                        scrollToAndHighlightCard(card);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 方法3: 全局搜索商品卡片
+                        console.log('方法3: 全局搜索商品卡片');
+                        const allProductCards = document.querySelectorAll('.product-card-hover, .product-card');
+                        console.log('全局找到商品卡片数量:', allProductCards.length);
+                        
+                        // 获取目标商品ID
+                        const targetProductId = pricingData.links[linkIndex].products[productIndex].productId;
+                        
+                        // 遍历所有商品卡片，找到包含正确商品ID的卡片
+                        for (let i = 0; i < allProductCards.length; i++) {
+                            const card = allProductCards[i];
+                            const productIdElement = card.querySelector('.font-bold.text-gray-900');
+                            if (productIdElement) {
+                                const productIdText = productIdElement.textContent;
+                                if (productIdText.includes(targetProductId)) {
+                                    console.log('全局通过商品ID找到目标商品卡片:', card);
+                                    scrollToAndHighlightCard(card);
                                     return;
                                 }
                             }
                         }
                         
-                        // 方法3: 全局搜索
-                        console.log('方法3: 全局搜索商品卡片');
-                        const allProductCards = document.querySelectorAll(`[data-link-index="${linkIndex}"] .product-card-hover, [data-link-index="${linkIndex}"] .product-card`);
-                        console.log('全局找到商品卡片数量:', allProductCards.length);
-                        
-                        if (allProductCards.length > productIndex) {
-                            const targetCard = allProductCards[productIndex];
-                            if (targetCard) {
-                                console.log('找到目标商品卡片:', targetCard);
-                                scrollToAndHighlightCard(targetCard);
-                                return;
+                        // 方法4: 等待更长时间后重试
+                        console.log('方法4: 等待更长时间后重试');
+                        setTimeout(() => {
+                            const displayContainer = document.getElementById('display-links-container');
+                            if (displayContainer) {
+                                // 获取所有商品卡片（排除链接卡片）
+                                const allCards = displayContainer.querySelectorAll('.product-card-hover');
+                                console.log('在详细页面找到所有卡片数量 (重试):', allCards.length);
+                                
+                                // 过滤出真正的商品卡片（排除链接卡片）
+                                const detailProductCards = Array.from(allCards).filter(card => {
+                                    const hasLinkIndex = card.hasAttribute('data-link-index');
+                                    const hasLinkTitle = card.querySelector('h3.text-lg.font-semibold');
+                                    return !(hasLinkIndex && hasLinkTitle);
+                                });
+                                console.log('在详细页面找到商品卡片数量 (重试):', detailProductCards.length);
+                                
+                                // 获取目标商品ID
+                                const targetProductId = pricingData.links[linkIndex].products[productIndex].productId;
+                                
+                                // 遍历商品卡片，通过商品ID精确匹配
+                                for (let i = 0; i < detailProductCards.length; i++) {
+                                    const card = detailProductCards[i];
+                                    const productIdElement = card.querySelector('.font-bold.text-gray-900');
+                                    if (productIdElement) {
+                                        const productIdText = productIdElement.textContent;
+                                        if (productIdText.includes(targetProductId)) {
+                                            console.log('通过商品ID找到目标商品卡片 (重试):', card);
+                                            scrollToAndHighlightCard(card);
+                                            return;
+                                        }
+                                    }
+                                }
                             }
-                        }
+                            console.error('无法找到目标商品卡片进行滚动');
+                        }, 500);
                         
                         console.error('无法找到目标商品卡片进行滚动');
                         
@@ -14375,15 +14434,70 @@ ${shopsMap[link.shopId]}
                     console.log('选中分类:', selectedCategory);
                     console.log('选中店铺:', selectedShopId);
                     
+                    let matchedProduct = null;
+                    let isSearchingProductId = false;
+                    
+                    // 首先检查是否有精准匹配的商品ID
+                    if (searchTerm) {
+                        // 先检查是否有精准匹配
+                        let hasExactMatch = false;
+                        for (let linkIndex = 0; linkIndex < pricingData.links.length; linkIndex++) {
+                            const linkData = pricingData.links[linkIndex];
+                            if (linkData.products) {
+                                for (let productIndex = 0; productIndex < linkData.products.length; productIndex++) {
+                                    const product = linkData.products[productIndex];
+                                    if (product.productId.toLowerCase() === searchTerm) {
+                                        matchedProduct = { linkIndex, productIndex };
+                                        isSearchingProductId = true;
+                                        hasExactMatch = true;
+                                        break;
+                                    }
+                                }
+                                if (hasExactMatch) break;
+                            }
+                        }
+                        
+                        // 如果没有精准匹配，仍然设置isSearchingProductId为true以支持模糊搜索
+                        if (!hasExactMatch) {
+                            for (let linkIndex = 0; linkIndex < pricingData.links.length; linkIndex++) {
+                                const linkData = pricingData.links[linkIndex];
+                                if (linkData.products) {
+                                    for (let productIndex = 0; productIndex < linkData.products.length; productIndex++) {
+                                        const product = linkData.products[productIndex];
+                                        if (product.productId.toLowerCase().includes(searchTerm)) {
+                                            isSearchingProductId = true;
+                                            break;
+                                        }
+                                    }
+                                    if (isSearchingProductId) break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    console.log('是否搜索商品ID:', isSearchingProductId);
+                    console.log('匹配的商品:', matchedProduct);
+                    
                     links.forEach((link, index) => {
                         const linkData = pricingData.links[index];
                         
                         // 搜索筛选
                         const linkName = (linkData.name || '').toLowerCase();
-                        const hasMatchingProduct = linkData.products && linkData.products.some(product => 
-                            product.productId.toLowerCase().includes(searchTerm)
-                        );
-                        const matchesSearch = searchTerm === '' || linkName.includes(searchTerm) || hasMatchingProduct;
+                        const hasMatchingProduct = linkData.products && linkData.products.some((product) => {
+                            return product.productId.toLowerCase().includes(searchTerm);
+                        });
+                        
+                        // 确定搜索匹配逻辑
+                        let matchesSearch = false;
+                        if (searchTerm === '') {
+                            matchesSearch = true;
+                        } else if (isSearchingProductId) {
+                            // 如果正在搜索商品ID，只显示包含匹配商品的链接
+                            matchesSearch = hasMatchingProduct;
+                        } else {
+                            // 否则，显示链接名称包含搜索词的链接
+                            matchesSearch = linkName.includes(searchTerm);
+                        }
                         
                         // 分类筛选
                         const matchesCategory = selectedCategory === '' || linkData.category === selectedCategory;
@@ -14397,6 +14511,36 @@ ${shopsMap[link.shopId]}
                         
                         if (shouldShow) {
                             link.classList.remove('hidden');
+                            
+                            // 如果是搜索商品ID，自动展开链接（包括模糊搜索）
+                            if (isSearchingProductId) {
+                                const content = link.querySelector('.link-content');
+                                const icon = link.querySelector('.link-toggle-icon');
+                                if (content && icon) {
+                                    content.classList.remove('hidden');
+                                    icon.style.transform = 'rotate(180deg)';
+                                }
+                            }
+                            
+                            // 过滤商品：只显示匹配的商品
+                            if (isSearchingProductId && searchTerm) {
+                                const productCards = link.querySelectorAll('.product-card');
+                                productCards.forEach((card, productIndex) => {
+                                    const product = linkData.products[productIndex];
+                                    const matches = product.productId.toLowerCase().includes(searchTerm);
+                                    if (matches) {
+                                        card.classList.remove('hidden');
+                                    } else {
+                                        card.classList.add('hidden');
+                                    }
+                                });
+                            } else {
+                                // 不是搜索商品ID或搜索词为空，显示所有商品
+                                const productCards = link.querySelectorAll('.product-card');
+                                productCards.forEach(card => {
+                                    card.classList.remove('hidden');
+                                });
+                            }
                         } else {
                             link.classList.add('hidden');
                         }
@@ -14415,6 +14559,50 @@ ${shopsMap[link.shopId]}
                     } else {
                         emptyState.classList.add('hidden');
                         container.classList.remove('hidden');
+                        
+                        // 如果有精准匹配的商品，滚动到该商品位置并显示高亮
+                        if (matchedProduct) {
+                            setTimeout(() => {
+                                // 尝试多种选择器来找到商品卡片
+                                let productCard = document.querySelector(`.product-card[data-link-index="${matchedProduct.linkIndex}"][data-product-index="${matchedProduct.productIndex}"]`);
+                                
+                                if (!productCard) {
+                                    // 尝试其他选择器
+                                    const linkElements = document.querySelectorAll('#links-container > div');
+                                    if (linkElements[matchedProduct.linkIndex]) {
+                                        const productElements = linkElements[matchedProduct.linkIndex].querySelectorAll('.product-card');
+                                        if (productElements[matchedProduct.productIndex]) {
+                                            productCard = productElements[matchedProduct.productIndex];
+                                        }
+                                    }
+                                }
+                                
+                                console.log('尝试查找商品卡片:', matchedProduct);
+                                console.log('找到的商品卡片:', productCard);
+                                
+                                if (productCard) {
+                                    // 滚动到卡片
+                                    productCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    
+                                    // 添加高亮效果，使用内发光避免被遮挡
+                                    productCard.style.boxShadow = 'inset 0 0 20px 5px rgba(59, 130, 246, 0.5)';
+                                    productCard.style.border = '2px solid rgba(59, 130, 246, 0.8)';
+                                    productCard.style.borderRadius = '6px';
+                                    
+                                    console.log('已添加高亮效果');
+                                    
+                                    // 移除高亮效果
+                                    setTimeout(() => {
+                                        productCard.style.boxShadow = '';
+                                        productCard.style.border = '';
+                                        productCard.style.borderRadius = '';
+                                        console.log('已移除高亮效果');
+                                    }, 2000);
+                                } else {
+                                    console.error('商品卡片未找到:', matchedProduct);
+                                }
+                            }, 300);
+                        }
                     }
                 }
                 
@@ -15899,7 +16087,7 @@ ${shopsMap[link.shopId]}
                         </div>
                     </div>
                     
-                    <div id="links-container" class="space-y-4">
+                    <div id="links-container">
                         <!-- Link cards will be added here -->
                     </div>
                     
