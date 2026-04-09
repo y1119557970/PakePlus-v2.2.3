@@ -1558,6 +1558,32 @@
         </div>
     </div>
     
+    <!-- Delete Category Confirmation Modal -->
+    <div id="delete-category-confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" style="z-index: 1001;">
+        <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 w-full max-w-md shadow-xl border border-white/20 transform transition-all duration-300 hover:shadow-2xl">
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">确认删除分类</h3>
+                    <button id="close-delete-category-confirm-modal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-gray-600">您确定要删除这个分类吗？此操作无法撤销。</p>
+                    <p id="delete-category-name" class="font-medium text-red-500 mt-2">分类名称</p>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button id="cancel-delete-category-btn" class="btn btn-secondary">取消</button>
+                    <button id="confirm-delete-category-btn" class="btn btn-danger">
+                        <i class="fa fa-trash"></i> 确认删除
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Delete SKU Confirmation Modal -->
     <div id="delete-sku-confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" style="z-index: 1001;">
         <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 w-full max-w-md shadow-xl border border-white/20 transform transition-all duration-300 hover:shadow-2xl">
@@ -2043,7 +2069,7 @@
 
 
     <!-- Header -->
-    <header class="fixed top-0 left-0 right-0 z-50 shadow-lg transition-all duration-300" style="width: 100%;">
+    <header id="main-header" class="fixed top-0 left-0 right-0 z-50 shadow-lg transition-all duration-300 hidden" style="width: 100%;">
         <div class="w-full px-4 py-4 flex justify-between items-center backdrop-blur-lg bg-white/70 border border-white/20">
             <div class="flex items-center space-x-3 group ml-12">
                 <img src="images/weice_logo1.png" alt="Weice Logo" class="h-8 w-auto">
@@ -2068,7 +2094,7 @@
     </header>
 
     <!-- Login Page -->
-    <div id="login-page" class="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center z-50">
+    <div id="login-page" class="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-8 transform transition-all duration-300 hover:shadow-xl">
             <div class="text-center mb-6">
                 <h3 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 mb-2">系统登录</h3>
@@ -2215,6 +2241,14 @@
                     <label for="register-confirm-password" class="block text-sm font-medium text-gray-700 mb-2">确认密码</label>
                     <input type="password" id="register-confirm-password" class="input-field" placeholder="请再次输入密码">
                 </div>
+                <div>
+                    <label for="register-email" class="block text-sm font-medium text-gray-700 mb-2">密保邮箱</label>
+                    <input type="email" id="register-email" class="input-field" placeholder="请输入密保邮箱（至少填写一项）">
+                </div>
+                <div>
+                    <label for="register-phone" class="block text-sm font-medium text-gray-700 mb-2">密保手机</label>
+                    <input type="tel" id="register-phone" class="input-field" placeholder="请输入密保手机（至少填写一项）">
+                </div>
             </div>
             <div class="mt-6">
                 <button onclick="register()" class="w-full py-3 rounded-xl bg-[#00BFA5] text-white flex items-center justify-center space-x-2 shadow-[5px_5px_10px_#008c7a,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#008c7a,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#008c7a,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 text-lg">
@@ -2229,7 +2263,7 @@
     </div>
 
     <!-- Navigation Tabs -->
-    <nav class="fixed top-[80px] left-0 right-0 z-40" style="height: 72px; width: 100%;">
+    <nav id="main-nav" class="fixed top-[80px] left-0 right-0 z-40 hidden" style="height: 72px; width: 100%;">
         <div class="w-full px-4 h-full flex items-center justify-center">
             <div class="relative flex space-x-1 items-center bg-white/70 backdrop-blur-md rounded-full p-0 shadow-lg h-14">
                 <!-- 滑动指示器 -->
@@ -2614,7 +2648,7 @@
     </div>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-4 pb-6 relative z-10 content-scrolled">
+    <main id="main-content" class="container mx-auto px-4 pb-6 relative z-10 content-scrolled hidden">
         <!-- Notes Page -->
         <div id="notes" class="hidden animate-fadeIn">
             <div class="max-w-9xl mx-auto w-full px-4">
@@ -2841,7 +2875,7 @@
                                     <div class="flex border-b border-gray-300">
                                         <button class="settings-tab px-6 py-3 text-lg font-medium text-primary border-b-2 border-primary" data-settings-tab="account">账号设置</button>
                                         <button class="settings-tab px-6 py-3 text-lg font-medium text-gray-500 hover:text-primary" data-settings-tab="password">修改密码</button>
-                                        <button class="settings-tab px-6 py-3 text-lg font-medium text-gray-500 hover:text-primary" data-settings-tab="security">密保设置</button>
+                                        <button class="settings-tab px-6 py-3 text-lg font-medium text-gray-500 hover:text-primary" data-settings-tab="security">修改密保</button>
                                         <button class="settings-tab px-6 py-3 text-lg font-medium text-gray-500 hover:text-primary" data-settings-tab="register">账户注册</button>
                                     </div>
                                 </div>
@@ -2938,6 +2972,14 @@
                                                 <label for="settings-register-confirm-password" class="block text-sm font-medium text-gray-700 mb-2">确认密码</label>
                                                 <input type="password" id="settings-register-confirm-password" class="input-field" placeholder="请再次输入密码">
                                             </div>
+                                            <div>
+                                                <label for="settings-register-email" class="block text-sm font-medium text-gray-700 mb-2">密保邮箱</label>
+                                                <input type="email" id="settings-register-email" class="input-field" placeholder="请输入密保邮箱（至少填写一项）">
+                                            </div>
+                                            <div>
+                                                <label for="settings-register-phone" class="block text-sm font-medium text-gray-700 mb-2">密保手机</label>
+                                                <input type="tel" id="settings-register-phone" class="input-field" placeholder="请输入密保手机（至少填写一项）">
+                                            </div>
                                             <div class="pt-4">
                                                 <button onclick="registerAccount()" class="px-4 py-2.5 rounded-xl bg-[#00BFA5] text-white flex items-center space-x-2 shadow-[5px_5px_10px_#008c7a,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#008c7a,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#008c7a,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300">
                                                     <i class="fa fa-user-plus"></i>
@@ -2964,6 +3006,20 @@
                                     <div class="flex justify-between items-center pb-4 border-b border-gray-200">
                                         <span class="text-gray-600 text-lg">创建时间:</span>
                                         <span id="user-info-created-at" class="font-medium text-lg"></span>
+                                    </div>
+                                    <div class="flex justify-between items-center pb-4 border-b border-gray-200">
+                                        <span class="text-gray-600 text-lg">今日免登状态:</span>
+                                        <div class="flex items-center space-x-3">
+                                            <span id="user-info-today-login" class="font-medium text-lg"></span>
+                                            <button id="enable-today-login-btn" class="px-4 py-2.5 rounded-xl bg-[#00BFA5] text-white flex items-center space-x-2 shadow-[5px_5px_10px_#008c7a,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#008c7a,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#008c7a,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 text-sm" onclick="enableTodayLogin()">
+                                                <i class="fa fa-check-circle"></i>
+                                                <span>开启今日免登</span>
+                                            </button>
+                                            <button id="cancel-today-login-btn" class="px-4 py-2.5 rounded-xl bg-gray-100 text-black flex items-center space-x-2 shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 text-sm" onclick="cancelTodayLogin()">
+                                                <i class="fa fa-times-circle"></i>
+                                                <span>取消今日免登</span>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="pt-4">
                                         <button id="logout-btn" onclick="handleLogout()" class="px-4 py-2.5 rounded-xl bg-red-500 text-white flex items-center space-x-2 shadow-[5px_5px_10px_#c53030,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#c53030,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#c53030,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300">
@@ -3063,7 +3119,7 @@
                                 </div>
                                 <div>
                                     <div>
-                                        <p class="text-lg text-blue-600 font-bold">当前版本：V1.0.2</p>
+                                        <p class="text-lg text-blue-600 font-bold">当前版本：V1.0.3</p>
                                     </div>
                                     
                                     <div class="mt-12">
@@ -4260,9 +4316,12 @@
             
             // 检查登录状态
             function checkLoginStatus() {
-                // 页面加载时先隐藏所有模态框
+                // 页面加载时先隐藏所有模态框和主界面
                 document.getElementById('login-page').classList.add('hidden');
                 document.getElementById('register-page').classList.add('hidden');
+                document.getElementById('main-header').classList.add('hidden');
+                document.getElementById('main-nav').classList.add('hidden');
+                document.getElementById('main-content').classList.add('hidden');
 
                 // 检查是否有用户数据
                 const users = JSON.parse(localStorage.getItem('users')) || [];
@@ -4277,12 +4336,21 @@
                         if (user) {
                             currentUser = user;
                             console.log('今日已登录，自动免登');
+                            // 显示主界面
+                            document.getElementById('main-header').classList.remove('hidden');
+                            document.getElementById('main-nav').classList.remove('hidden');
+                            document.getElementById('main-content').classList.remove('hidden');
                             return; // 直接返回，不显示登录页面
                         }
                     }
                     
                     // 如果没有今日免登记录，显示登录页面
                     document.getElementById('login-page').classList.remove('hidden');
+                } else {
+                    // 没有用户数据，直接进入系统
+                    document.getElementById('main-header').classList.remove('hidden');
+                    document.getElementById('main-nav').classList.remove('hidden');
+                    document.getElementById('main-content').classList.remove('hidden');
                 }
                 // 无需从localStorage中恢复登录状态，每次都需要重新登录
             }
@@ -4319,6 +4387,34 @@
             // 清除今日登录记录（用于退出登录时）
             function clearTodayLogin() {
                 localStorage.removeItem('todayLogin');
+            }
+            
+            // 取消今日免登
+            function cancelTodayLogin() {
+                if (currentUser) {
+                    localStorage.removeItem('todayLogin');
+                    showToast('成功', '已取消今日免登', 'success');
+                    // 更新用户信息页面
+                    updateSettingsPage();
+                } else {
+                    showToast('错误', '请先登录', 'error');
+                }
+            }
+            
+            // 开启今日免登
+            function enableTodayLogin() {
+                if (currentUser) {
+                    const todayLogin = {
+                        username: currentUser.username,
+                        date: new Date().toDateString()
+                    };
+                    localStorage.setItem('todayLogin', JSON.stringify(todayLogin));
+                    showToast('成功', '已开启今日免登', 'success');
+                    // 更新用户信息页面
+                    updateSettingsPage();
+                } else {
+                    showToast('错误', '请先登录', 'error');
+                }
             }
             
             // ==================== 笔记功能 ====================
@@ -6588,8 +6684,11 @@
                     // 保存历史登录账号
                     saveLoginHistory(username);
                     
-                    // 隐藏登录页面
+                    // 隐藏登录页面，显示主界面
                     document.getElementById('login-page').classList.add('hidden');
+                    document.getElementById('main-header').classList.remove('hidden');
+                    document.getElementById('main-nav').classList.remove('hidden');
+                    document.getElementById('main-content').classList.remove('hidden');
                     
                     // 如果当前在设置页面，更新用户信息
                     if (!document.getElementById('settings').classList.contains('hidden')) {
@@ -6679,9 +6778,16 @@
                 const username = document.getElementById('register-username').value.trim();
                 const password = document.getElementById('register-password').value;
                 const confirmPassword = document.getElementById('register-confirm-password').value;
+                const email = document.getElementById('register-email').value.trim();
+                const phone = document.getElementById('register-phone').value.trim();
                 
                 if (!username || !password || !confirmPassword) {
                     showToast('错误', '请填写所有必填字段', 'error');
+                    return;
+                }
+                
+                if (!email && !phone) {
+                    showToast('错误', '请至少填写密保邮箱或密保手机一项', 'error');
                     return;
                 }
                 
@@ -6718,6 +6824,8 @@
                 const newUser = {
                     username: username,
                     password: password,
+                    email: email,
+                    phone: phone,
                     createdAt: new Date().toISOString()
                 };
                 
@@ -6743,6 +6851,14 @@
                     } else {
                         document.getElementById('user-info-created-at').textContent = '未知';
                     }
+                    // 显示今日免登状态
+                    const todayLogin = JSON.parse(localStorage.getItem('todayLogin')) || {};
+                    const today = new Date().toDateString();
+                    const isTodayLogin = todayLogin.date === today && todayLogin.username === currentUser.username;
+                    document.getElementById('user-info-today-login').textContent = isTodayLogin ? '已开启' : '未开启';
+                    // 控制按钮显示
+                    document.getElementById('enable-today-login-btn').style.display = isTodayLogin ? 'none' : 'inline-block';
+                    document.getElementById('cancel-today-login-btn').style.display = isTodayLogin ? 'inline-block' : 'none';
                     // 已登录状态下，启用退出登录按钮
                     logoutBtn.disabled = false;
                     logoutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -6753,6 +6869,10 @@
                     document.getElementById('settings-current-user').textContent = '未登录';
                     document.getElementById('user-info-username').textContent = '未登录';
                     document.getElementById('user-info-created-at').textContent = '未知';
+                    document.getElementById('user-info-today-login').textContent = '未登录';
+                    // 未登录状态下，隐藏两个按钮
+                    document.getElementById('enable-today-login-btn').style.display = 'none';
+                    document.getElementById('cancel-today-login-btn').style.display = 'none';
                     // 未登录状态下，禁用退出登录按钮
                     logoutBtn.disabled = true;
                     logoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -7197,9 +7317,16 @@
                 const username = document.getElementById('settings-register-username').value.trim();
                 const password = document.getElementById('settings-register-password').value;
                 const confirmPassword = document.getElementById('settings-register-confirm-password').value;
+                const email = document.getElementById('settings-register-email').value.trim();
+                const phone = document.getElementById('settings-register-phone').value.trim();
 
                 if (!username || !password || !confirmPassword) {
                     showToast('错误', '请填写所有必填字段', 'error');
+                    return;
+                }
+                
+                if (!email && !phone) {
+                    showToast('错误', '请至少填写密保邮箱或密保手机一项', 'error');
                     return;
                 }
 
@@ -7236,6 +7363,8 @@
                 const newUser = {
                     username: username,
                     password: password,
+                    email: email,
+                    phone: phone,
                     createdAt: new Date().toISOString()
                 };
                 
@@ -7248,6 +7377,8 @@
                 document.getElementById('settings-register-username').value = '';
                 document.getElementById('settings-register-password').value = '';
                 document.getElementById('settings-register-confirm-password').value = '';
+                document.getElementById('settings-register-email').value = '';
+                document.getElementById('settings-register-phone').value = '';
                 
                 // 刷新用户列表
                 refreshUserList();
@@ -7353,7 +7484,10 @@
                 currentUser = null;
                 localStorage.removeItem('currentUser');
                 
-                // 显示登录页面
+                // 隐藏主界面，显示登录页面
+                document.getElementById('main-header').classList.add('hidden');
+                document.getElementById('main-nav').classList.add('hidden');
+                document.getElementById('main-content').classList.add('hidden');
                 document.getElementById('login-page').classList.remove('hidden');
                 
                 // 重置所有标签页
@@ -15887,7 +16021,7 @@ ${shopsMap[link.shopId]}
                             </button>
                             <button id="add-accessory" class="px-4 py-2.5 rounded-xl bg-[#0066FF] text-white flex items-center space-x-2 shadow-[5px_5px_10px_#0047b3,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#0047b3,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#0047b3,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300">
                                 <i class="fa fa-plus"></i>
-                                <span>添加配件</span>
+                                <span>添加产品</span>
                             </button>
                         </div>
                     </div>
@@ -22425,12 +22559,12 @@ ${shopsMap[link.shopId]}
                             <span class="text-sm text-gray-600">条/页</span>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <button id="payment-prev-page" class="btn btn-sm btn-outline-secondary" disabled="">
-                                <i class="fa fa-chevron-left"></i>
+                            <button id="payment-prev-page" class="px-3 py-2 rounded-xl bg-gray-100 text-black text-sm flex items-center space-x-1 shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i class="fa fa-chevron-left"></i> 上一页
                             </button>
-                            <div id="payment-page-info" class="text-sm text-gray-600">第 1 页，共 1 页</div>
-                            <button id="payment-next-page" class="btn btn-sm btn-outline-secondary" disabled="">
-                                <i class="fa fa-chevron-right"></i>
+                            <div id="payment-page-info" class="text-sm text-gray-600">第 1 / 1 页</div>
+                            <button id="payment-next-page" class="px-3 py-2 rounded-xl bg-gray-100 text-black text-sm flex items-center space-x-1 shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                下一页 <i class="fa fa-chevron-right"></i>
                             </button>
                             <div class="flex items-center space-x-2">
                                 <input type="number" id="payment-jump-page" class="form-input text-sm border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50 w-16 bg-white border border-gray-300 shadow-sm" min="1" value="1">
@@ -23911,14 +24045,12 @@ ${shopsMap[link.shopId]}
                             </select> 条
                         </div>
                         <div class="flex items-center space-x-2">
-                            <button id="purchase-prev-page" class="btn btn-sm btn-outline-gray-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled="">
-                                <i class="fa fa-chevron-left"></i>
+                            <button id="purchase-prev-page" class="px-3 py-2 rounded-xl bg-gray-100 text-black text-sm flex items-center space-x-1 shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i class="fa fa-chevron-left"></i> 上一页
                             </button>
-                            <span id="purchase-current-page" class="text-sm font-medium text-gray-700">1</span>
-                            <span class="text-sm text-gray-500">/</span>
-                            <span id="purchase-total-pages" class="text-sm text-gray-500">1</span>
-                            <button id="purchase-next-page" class="btn btn-sm btn-outline-gray-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled="">
-                                <i class="fa fa-chevron-right"></i>
+                            <span class="text-sm text-gray-600">第 <span id="purchase-current-page" class="font-semibold text-gray-800">1</span> / <span id="purchase-total-pages" class="text-gray-500">1</span> 页</span>
+                            <button id="purchase-next-page" class="px-3 py-2 rounded-xl bg-gray-100 text-black text-sm flex items-center space-x-1 shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                下一页 <i class="fa fa-chevron-right"></i>
                             </button>
                             <div class="flex items-center space-x-2">
                                 <span class="text-sm text-gray-600">前往</span>
@@ -26301,17 +26433,17 @@ ${shopsMap[link.shopId]}
                 }
             });
             
-            // 添加成本按钮（快递、包装、平台、配件）
+            // 添加成本按钮（快递、包装、平台、产品）
             document.getElementById('add-express').addEventListener('click', function() {
-                openCostModal('express', '快递公司');
+                openCostModal('express', '快递成本');
             });
             
             document.getElementById('add-packaging').addEventListener('click', function() {
-                openCostModal('packaging', '包装材料');
+                openCostModal('packaging', '包装成本');
             });
             
             document.getElementById('add-platform').addEventListener('click', function() {
-                openCostModal('platform', '管理项目');
+                openCostModal('platform', '管理成本');
             });
             
             document.getElementById('add-accessory').addEventListener('click', function() {
@@ -26323,7 +26455,7 @@ ${shopsMap[link.shopId]}
             
             // 分类管理按钮事件
             document.getElementById('manage-packaging-categories').addEventListener('click', function() {
-                openCategoryManagementModal('packaging', '包装材料');
+                openCategoryManagementModal('packaging', '包装成本');
             });
             
             document.getElementById('manage-accessory-categories').addEventListener('click', function() {
@@ -30946,15 +31078,15 @@ ${shopsMap[link.shopId]}
             console.log('产品成本数量:', window.costRecords.accessory.length);
             
             // 渲染快递成本
-            renderCostSection('express-costs', window.costRecords.express, '快递公司');
+            renderCostSection('express-costs', window.costRecords.express, '快递成本');
             
             // 渲染包装成本
-            renderCostSection('packaging-costs', window.costRecords.packaging, '包装材料');
+            renderCostSection('packaging-costs', window.costRecords.packaging, '包装成本');
             
             // 渲染平台服务成本
-            renderCostSection('platform-costs', window.costRecords.platform, '服务项目');
+            renderCostSection('platform-costs', window.costRecords.platform, '管理成本');
             
-            // 渲染配件成本
+            // 渲染产品成本
             renderCostSection('accessory-costs', window.costRecords.accessory, getCostTypeName('accessory'));
         }
         
@@ -31167,9 +31299,9 @@ ${shopsMap[link.shopId]}
                     
                     // 设置标题
                     const typeNames = {
-                        'express': '快递公司',
-                        'packaging': '包装材料',
-                        'platform': '服务项目',
+                        'express': '快递成本',
+                        'packaging': '包装成本',
+                        'platform': '管理成本',
                         'accessory': getCostTypeName('accessory')
                     };
                     
@@ -35764,6 +35896,8 @@ ${shopsMap[link.shopId]}
             });
 
             // 添加删除分类事件
+            let currentDeleteCategoryData = {};
+            
             document.querySelectorAll('.delete-category').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const type = this.getAttribute('data-cost-type');
@@ -35773,25 +35907,60 @@ ${shopsMap[link.shopId]}
                     const categoryObj = categories[index];
                     const categoryName = typeof categoryObj === 'string' ? categoryObj : categoryObj.name;
                     
-                    if (confirm(`确定要删除分类 "${categoryName}" 吗？`)) {
-                        // 移除分类
-                        costCategories[type].splice(index, 1);
-                        
-                        // 将使用该分类的成本项设为无分类
-                        costRecords[type].forEach(item => {
-                            if (item.category === categoryName) {
-                                item.category = '';
-                            }
-                        });
-                        
-                        saveData();
-                        renderCategoriesList(type);
-                        updateCategoryFilters();
-                        renderCostRecords();
-                        
-                        showToast('成功', '分类已删除', 'success');
+                    // 检查分类是否被使用
+                    const isCategoryUsed = costRecords[type].some(item => item.category === categoryName);
+                    
+                    if (isCategoryUsed) {
+                        showToast('错误', '该分类正在使用中，无法删除', 'error');
+                        return;
+                    }
+                    
+                    // 存储当前删除的分类数据
+                    currentDeleteCategoryData = {
+                        type: type,
+                        index: index,
+                        name: categoryName
+                    };
+                    
+                    // 显示确认删除模态框
+                    document.getElementById('delete-category-name').textContent = categoryName;
+                    document.getElementById('delete-category-confirm-modal').classList.remove('hidden');
+                });
+            });
+            
+            // 关闭删除分类确认模态框
+            document.getElementById('close-delete-category-confirm-modal').addEventListener('click', function() {
+                document.getElementById('delete-category-confirm-modal').classList.add('hidden');
+            });
+            
+            // 取消删除分类
+            document.getElementById('cancel-delete-category-btn').addEventListener('click', function() {
+                document.getElementById('delete-category-confirm-modal').classList.add('hidden');
+            });
+            
+            // 确认删除分类
+            document.getElementById('confirm-delete-category-btn').addEventListener('click', function() {
+                const { type, index, name } = currentDeleteCategoryData;
+                
+                // 移除分类
+                costCategories[type].splice(index, 1);
+                
+                // 将使用该分类的成本项设为无分类
+                costRecords[type].forEach(item => {
+                    if (item.category === name) {
+                        item.category = '';
                     }
                 });
+                
+                saveData();
+                renderCategoriesList(type);
+                updateCategoryFilters();
+                renderCostRecords();
+                
+                showToast('成功', '分类已删除', 'success');
+                
+                // 关闭模态框
+                document.getElementById('delete-category-confirm-modal').classList.add('hidden');
             });
 
             // 添加分类名称点击事件（支持直接点击分类名称进行编辑）
@@ -36928,7 +37097,7 @@ ${shopsMap[link.shopId]}
             // 更新包装材料分类筛选器
             updateCategoryFilter('packaging');
             
-            // 更新配件分类筛选器
+            // 更新产品分类筛选器
             updateCategoryFilter('accessory');
         }
         
@@ -39513,10 +39682,13 @@ ${shopsMap[link.shopId]}
                 
                 const detailsHtml = record.details.map(detail => {
                     // 对于编辑付款类型，显示本次实际支付金额（即记录的总金额）
+                    // 对于退款类型，显示本次退款金额
                     const isEditPayment = record.type === '编辑付款';
-                    const displayAmount = isEditPayment ? 
+                    const isRefund = record.type === '退款';
+                    const displayAmount = isEditPayment || isRefund ? 
                         parseFloat(record.amount || 0) : 
                         parseFloat(detail.paymentAmount || detail.paidAmount || 0);
+
                     
                     return `
                         <div class="bg-gray-50 rounded-lg p-3 mt-3">
@@ -39526,11 +39698,11 @@ ${shopsMap[link.shopId]}
                                     <p class="text-xs text-gray-500">供应商: ${detail.supplier || '-'} | 编码: ${detail.code || '-'}</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-sm font-semibold text-gray-800">¥${displayAmount.toFixed(2)}</p>
+                                    <p class="text-sm font-semibold text-gray-800">${record.type === '退款' ? '本次退款：' : '本次付款：'}¥${displayAmount.toFixed(2)}</p>
                                     <p class="text-xs text-gray-500">
+                                        总计: ¥${parseFloat(detail.totalPrice || detail.total || 0).toFixed(2)} /
                                         已付: ¥${parseFloat(detail.newPaid || detail.paidAmount || 0).toFixed(2)} / 
-                                        待付: ¥${(parseFloat(detail.totalPrice || detail.total || 0) - parseFloat(detail.newPaid || detail.paidAmount || 0)).toFixed(2)} /
-                                        总计: ¥${parseFloat(detail.totalPrice || detail.total || 0).toFixed(2)}
+                                        <span class="${(parseFloat(detail.totalPrice || detail.total || 0) - parseFloat(detail.newPaid || detail.paidAmount || 0)).toFixed(2) == 0 ? 'text-green-600' : 'text-red-600'}">待付: ¥${(parseFloat(detail.totalPrice || detail.total || 0) - parseFloat(detail.newPaid || detail.paidAmount || 0)).toFixed(2)}</span>
                                     </p>
                                 </div>
                             </div>
@@ -39699,7 +39871,7 @@ ${shopsMap[link.shopId]}
             const pageJumpInput = document.getElementById('payment-jump-page');
             
             if (pageInfoElement) {
-                pageInfoElement.textContent = `第 ${paymentCurrentPage} 页，共 ${paymentTotalPages} 页`;
+                pageInfoElement.textContent = `第 ${paymentCurrentPage} / ${paymentTotalPages} 页`;
             }
             
             if (prevButton) {
@@ -40137,10 +40309,10 @@ ${shopsMap[link.shopId]}
             const dataList = document.getElementById('purchase-data-list');
             const noData = document.getElementById('no-purchase-data');
             
-            // 如果传入了过滤后的数据，更新过滤数据并重置页码
+            // 如果传入了过滤后的数据，更新过滤数据但不重置页码
             if (filteredPurchases !== null) {
                 purchaseFilteredData = filteredPurchases;
-                purchaseCurrentPage = 1;
+                // 重要：不重置页码，保持用户当前浏览位置
             }
             // 否则，总是使用最新的采购数据，确保列表实时更新
             else {
@@ -40446,7 +40618,7 @@ ${shopsMap[link.shopId]}
                     console.log('上一页点击，当前页:', purchaseCurrentPage);
                     if (purchaseCurrentPage > 1) {
                         purchaseCurrentPage--;
-                        renderPurchaseData();
+                        renderPurchaseData(purchaseFilteredData);
                     }
                 });
             }
@@ -40463,7 +40635,7 @@ ${shopsMap[link.shopId]}
                     console.log('下一页点击，当前页:', purchaseCurrentPage, '总页数:', purchaseTotalPages);
                     if (purchaseCurrentPage < purchaseTotalPages) {
                         purchaseCurrentPage++;
-                        renderPurchaseData();
+                        renderPurchaseData(purchaseFilteredData);
                     }
                 });
             }
@@ -40474,7 +40646,7 @@ ${shopsMap[link.shopId]}
                     console.log('每页显示数量改变:', newSize);
                     purchasePageSize = newSize;
                     purchaseCurrentPage = 1;
-                    renderPurchaseData();
+                    renderPurchaseData(purchaseFilteredData);
                 });
             }
 
@@ -40529,7 +40701,7 @@ ${shopsMap[link.shopId]}
             if (targetPage !== purchaseCurrentPage) {
                 console.log('执行页面切换:', purchaseCurrentPage, '->', targetPage);
                 purchaseCurrentPage = targetPage;
-                renderPurchaseData();
+                renderPurchaseData(purchaseFilteredData);
             } else {
                 console.log('无需切换页面，已在目标页:', targetPage);
             }
@@ -41192,6 +41364,13 @@ ${shopsMap[link.shopId]}
             purchaseData.purchases[index] = updatedPurchase;
             console.log('=== 替换数组元素后 ===', '数组长度:', purchaseData.purchases.length);
             
+            // 更新filteredData中的对应记录
+            const filteredIndex = purchaseFilteredData.findIndex(p => p.id === updatedPurchase.id);
+            if (filteredIndex !== -1) {
+                purchaseFilteredData[filteredIndex] = updatedPurchase;
+                console.log('=== 更新filteredData中的记录 ===', '索引:', filteredIndex);
+            }
+            
             // 6. 验证替换结果
             const replacedPurchase = purchaseData.purchases[index];
             console.log('=== 替换后的记录 ===', JSON.stringify(replacedPurchase));
@@ -41242,20 +41421,20 @@ ${shopsMap[link.shopId]}
                 console.log(`索引 ${i} (ID: ${p.id}):`, p.note);
             });
             
-            // 重新渲染采购数据列表以更新显示
-            renderPurchaseData();
+            // 重新渲染采购数据列表以更新显示，保持筛选状态
+            renderPurchaseData(purchaseFilteredData);
             
-            // 8. 强制重新渲染
-            renderPurchaseData();
+            // 8. 强制重新渲染，保持筛选状态
+            renderPurchaseData(purchaseFilteredData);
             renderPurchaseRecords();
             updateStatistics();
             
             // 保存数据
             savePurchaseData();
             
-            // 更新界面
+            // 更新界面，保持筛选状态
             renderPurchaseRecords();
-            renderPurchaseData();
+            renderPurchaseData(purchaseFilteredData);
             updateStatistics();
             
             // 更新付款记录列表
@@ -43353,8 +43532,8 @@ ${shopsMap[link.shopId]}
                 const isDetailFormOpen = document.getElementById(`detail-form-${purchaseId}`) && 
                                        !document.getElementById(`detail-form-${purchaseId}`).classList.contains('hidden');
                 
-                // 重新渲染采购数据列表以确保所有数据正确更新
-                renderPurchaseData();
+                // 重新渲染采购数据列表以确保所有数据正确更新，保持筛选状态
+                renderPurchaseData(purchaseFilteredData);
                 
                 // 如果之前表单是展开的，重新展开它
                 if (isDetailFormOpen) {
@@ -43484,8 +43663,8 @@ ${shopsMap[link.shopId]}
                     const isDetailFormOpen = document.getElementById(`detail-form-${purchaseId}`) && 
                                            !document.getElementById(`detail-form-${purchaseId}`).classList.contains('hidden');
                     
-                    // 重新渲染采购数据列表以确保所有数据正确更新
-                    renderPurchaseData();
+                    // 重新渲染采购数据列表以确保所有数据正确更新，保持筛选状态
+                    renderPurchaseData(purchaseFilteredData);
                     
                     // 如果表单之前是展开的，重新展开它
                     if (isDetailFormOpen) {
