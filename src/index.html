@@ -3149,8 +3149,8 @@
                                 </div>
                                 <div class="mt-auto pt-6">
                                     <hr class="border-gray-200 mb-6">
-                                    <p class="text-gray-600 text-center" style="font-size: 12px;">未策Weice 版权所有</p>
-                                    <p class="text-gray-600 text-center" style="font-size: 12px;">Copyright ©️ 2025-2026 Weice. All Rights Reserved.</p>
+                                    <p class="text-gray-600 text-center" style="font-size: 12px;">未策Wiseway 版权所有</p>
+                                    <p class="text-gray-600 text-center" style="font-size: 12px;">Copyright ©️ 2025-2026 Wiseway. All Rights Reserved.</p>
                                 </div>
                             </div>
                         </div>
@@ -3552,6 +3552,9 @@
                     const importData = JSON.parse(document.getElementById('import-cost-data').value);
                     const importMode = document.querySelector('input[name="import-cost-mode"]:checked').value;
                     
+                    console.log('确认导入 - 模式:', importMode);
+                    console.log('确认导入 - 数据数量:', importData.length);
+                    
                     // 执行导入
                     importCostItems(importData, importMode);
                     
@@ -3729,11 +3732,26 @@
                 console.log('开始导入成本项目');
                 console.log('导入模式:', mode);
                 console.log('导入数据数量:', data.length);
-                // 获取现有数据
-                let expressCosts = JSON.parse(localStorage.getItem('expressCosts')) || [];
-                let platformCosts = JSON.parse(localStorage.getItem('platformCosts')) || [];
-                let packagingCosts = JSON.parse(localStorage.getItem('packagingCosts')) || [];
-                let accessoryCosts = JSON.parse(localStorage.getItem('accessoryCosts')) || [];
+                
+                // 优先使用内存中的数据（如果存在），否则从localStorage获取
+                let expressCosts = [];
+                let platformCosts = [];
+                let packagingCosts = [];
+                let accessoryCosts = [];
+                
+                if (window.costRecords) {
+                    expressCosts = window.costRecords.express || [];
+                    platformCosts = window.costRecords.platform || [];
+                    packagingCosts = window.costRecords.packaging || [];
+                    accessoryCosts = window.costRecords.accessory || [];
+                    console.log('使用内存中的costRecords数据');
+                } else {
+                    expressCosts = JSON.parse(localStorage.getItem('expressCosts')) || [];
+                    platformCosts = JSON.parse(localStorage.getItem('platformCosts')) || [];
+                    packagingCosts = JSON.parse(localStorage.getItem('packagingCosts')) || [];
+                    accessoryCosts = JSON.parse(localStorage.getItem('accessoryCosts')) || [];
+                    console.log('使用localStorage中的数据');
+                }
 
                 console.log('导入前数据状态:');
                 console.log('快递成本数量:', expressCosts.length);
@@ -3757,7 +3775,11 @@
                     };
 
                     let targetArray;
-                    switch (item.type) {
+                    // 规范化成本类型名称，确保一致性
+                    const normalizedType = item.type.trim();
+                    console.log(`处理项目类型: ${item.type} -> 规范化为: ${normalizedType}`);
+                    
+                    switch (normalizedType) {
                         case '快递成本':
                             targetArray = expressCosts;
                             break;
@@ -3770,13 +3792,17 @@
                         case '产品成本':
                             targetArray = accessoryCosts;
                             break;
+                        default:
+                            console.log('未知成本类型:', normalizedType);
+                            skipCount++;
+                            return; // 跳过未知类型
                     }
 
-                    // 检查是否已存在
-                    const existingIndex = targetArray.findIndex(i => i.name === item.name);
+                    // 检查是否已存在（规范化比较，去除空格并转换为小写）
+                    const normalizedItemName = item.name.trim().toLowerCase();
+                    const existingIndex = targetArray.findIndex(i => i.name.trim().toLowerCase() === normalizedItemName);
 
-                    console.log(`检查项目: ${item.name}, 类型: ${item.type}, 已存在: ${existingIndex >= 0}`);
-
+                    console.log(`检查项目: ${item.name}, 类型: ${normalizedType}, 已存在: ${existingIndex >= 0}, 模式: ${mode}`);
 
                     if (existingIndex >= 0) {
                         if (mode === 'merge' || mode === 'update') {
@@ -3790,18 +3816,22 @@
                                 updatedAt: new Date().toISOString()
                             };
                             updateCount++;
+                            console.log(`更新项目: ${item.name}`);
                         } else {
                             // 跳过已存在的项目
                             skipCount++;
+                            console.log(`跳过已存在项目: ${item.name}`);
                         }
                     } else {
                         if (mode === 'merge' || mode === 'insert') {
                             // 添加新项目
                             targetArray.push(costItem);
                             newCount++;
+                            console.log(`新增项目: ${item.name}`);
                         } else {
                             // 跳过不存在的项目
                             skipCount++;
+                            console.log(`跳过不存在项目: ${item.name}`);
                         }
                     }
                 });
