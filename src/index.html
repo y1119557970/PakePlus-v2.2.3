@@ -36,7 +36,8 @@
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -44,12 +45,23 @@
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -215,7 +227,8 @@
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -223,12 +236,23 @@
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -979,7 +1003,798 @@
     </style>
 
     <!-- Delete Shop Confirmation Modal -->
-    </head><body class="bg-gray-50 min-h-screen"><div id="delete-shop-confirm-modal" class="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 hidden transition-opacity duration-300" style="z-index: 1001;">
+    </head><body class="bg-gray-50 min-h-screen">
+    
+    <!-- 首次使用弹窗 -->
+    <div id="welcome-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 class="modal-title">欢迎使用 未策</h2>
+            <div class="modal-text">
+                <p>我们将通过<span class="text-blue-600 font-medium cursor-pointer" onclick="showUserAgreementModal()">《用户服务协议》</span> <span class="text-blue-600 font-medium cursor-pointer" onclick="showPrivacyPolicyModal()">《隐私权政策》</span>向您告知我们提供的服务内容及形式、使用本服务需遵守的规范。同时为了更好地保障您的个人权益，便于您了解我们如何收集、使用、存储、保护、对外提供您的个人信息以及您享有的个人信息相关权利。请您在使用本服务前审慎阅读并充分理解相关内容。</p>
+                <p class="mt-4">如您已阅读并理解相关条款，请点击"同意"，正式开启服务！</p>
+            </div>
+            <div class="modal-buttons">
+                <div class="modal-button cancel" onclick="handleDisagree()">不同意</div>
+                <div class="modal-button confirm" id="agree-button" onclick="handleAgree()" style="opacity: 0.6; pointer-events: none;">同意 (6s)</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 不同意提示弹窗 -->
+    <div id="disagree-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 class="modal-title">温馨提示</h2>
+            <div class="modal-text">
+                <p>我们非常重视对您个人信息的保护，承诺严格按照未策隐私权政策保护及处理您的信息，如不同意该政策，很遗憾我们将无法提供服务!</p>
+            </div>
+            <div class="modal-buttons">
+                <div class="modal-button cancel" onclick="exitApp()">退出应用</div>
+                <div class="modal-button confirm" onclick="showWelcomeModal()">再次查看</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 用户协议模态框 -->
+    <div id="user-agreement-modal" class="fixed inset-0 bg-black/0 backdrop-blur-0 flex items-center justify-center z-50 hidden transition-all duration-300" style="z-index: 1001;">
+        <div class="modal-content transform scale-95 opacity-0 transition-all duration-300" style="max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
+            <!-- 固定标题部分 -->
+            <div class="text-center mb-4 border-b border-gray-200 pb-4">
+                <h2 class="modal-title">用户服务协议</h2>
+            </div>
+            <!-- 可滚动内容部分 -->
+            <div style="flex: 1; overflow-y: auto; padding-right: 14px;">
+                <div class="space-y-6 text-gray-700">
+                    <p class="text-gray-600">生效日期：2026年03月28日</p>
+                    <p>欢迎你使用未策电商管理软件及服务!</p>
+                    <p>协议主体：本协议由「未策电商管理软件」（以下简称"本软件"）的开发者（以下简称"我方"、"我们"）与使用本软件及相关服务的用户（以下简称"您"、"用户"）共同签署，是双方关于软件使用及服务的核心权利义务约定。</p>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">一、协议适用范围</h4>
+                        <p class="mb-2">1. 本协议适用于您下载、安装、启动、使用本软件及我方提供的相关配套服务（以下统称"服务"）的全部行为，涵盖个人用户、企业用户等所有使用主体。</p>
+                        <p class="mb-2">2. 您下载、安装、启动本软件，或首次使用本软件服务，即视为已充分阅读、理解并自愿接受本协议全部条款（包括但不限于免责条款、限制责任条款），自愿受本协议约束。</p>
+                        <p class="mb-2">3. 若您不同意本协议任何内容，或不同意我方后续对协议的修订，应立即停止下载、安装、使用本软件及相关服务，双方之间不产生任何权利义务关系。</p>
+                        <p>4. 本协议与《未策电商管理软件隐私政策》互为补充，共同构成您与我方关于软件使用及服务的完整协议；若两者条款存在冲突，以《隐私政策》中关于信息保护的专项约定为准。</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">二、软件核心功能与服务内容</h4>
+                        <p class="mb-2">本软件是专为中小电商卖家打造的一站式利润核算与经营管理工具，核心功能及服务范围如下，我方有权根据业务需求不定期优化、调整功能（重大调整将通过软件内公告通知）：</p>
+                        <p class="mb-2">1. 利润核算服务：支持一键导入表格、手动录入广告费等相关成本数据，自动统计多链接、小单量链接的精准利润，解决手工核算耗时、易漏算、易出错的问题，为您提供利润参考数据。</p>
+                        <p class="mb-2">2. 新品定价服务：根据您录入的成本、期望利润等参数，自动计算折扣、优惠券后的合理定价及保本投产比，协助您解决新手定价、多链接活动价管理等难题。</p>
+                        <p class="mb-2">3. 数据管理服务：支持核算数据的本地保存、加载及批量加载，提供单店铺、多店铺数据概览功能，支持月度、季度、年度数据分析，方便您查看经营趋势。</p>
+                        <p class="mb-2">4. 成本/采购管理服务：包含成本项目自定义管理、规格与成本联动设置、采购登记及收货状态管理，实现全链路经营数据的本地自动同步更新。</p>
+                        <p class="mb-2">5. 多店铺管理服务：支持商品ID与店铺、电商平台的绑定操作，自动区分商品归属，实现多店铺经营数据的统一管理、集中查看。</p>
+                        <p>6. 配套基础服务：提供软件版本更新提示、基础操作咨询、功能故障排查等技术支持服务（不包含电商经营策略、定价建议、税务合规等专业咨询服务）。</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">三、软件授权与使用规则</h4>
+                        <div>
+                            <h5 class="font-bold mb-2">(一）授权许可</h5>
+                            <p>我方授予您本软件的非独占、不可转让、不可再许可的合法使用权，您仅可将本软件用于自身合法的电商经营活动，仅限个人或本企业内部使用，不得用于任何商业转售、出租、出借、分享等盈利性用途。</p>
+                        </div>
+                        <div class="mt-4">
+                            <h5 class="font-bold mb-2">(二）使用限制</h5>
+                            <p class="mb-2">1. 禁止您对本软件进行破解、逆向工程、反编译、篡改程序代码、绕过授权验证，或制作、传播本软件的破解版本、衍生版本。</p>
+                            <p class="mb-2">2. 禁止您利用本软件从事任何违法违规行为，包括但不限于非法经营、洗钱、偷税漏税、虚假交易、侵害第三方知识产权或其他合法权益等。</p>
+                            <p class="mb-2">3. 禁止您利用本软件传输、存储违法、低俗、侵权等违规内容，或利用软件干扰我方服务正常运行、影响其他用户使用体验。</p>
+                            <p>4. 您应自行确保使用本软件的设备符合软件运行要求，妥善保管设备及软件账号（如有），因设备丢失、账号泄露导致的损失，由您自行承担。</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">四、数据权责约定</h4>
+                        <p class="mb-2">1. 数据责任归属：您对所有导入、录入、存储在本软件内的经营数据（包括但不限于商品成本、订单信息、推广费用、店铺数据等）的真实性、合法性、完整性承担全部责任。若因数据错误、遗漏、虚假导致您或第三方遭受损失，由您自行承担，我方不承担任何赔偿责任。</p>
+                        <p class="mb-2">2. 数据存储与备份：本软件仅支持本地数据存储，不自动上传您的任何经营数据至我方服务器（具体详见《隐私政策》）。您应定期手动备份本地数据文件，我方不提供数据恢复服务；因设备损坏、误操作、病毒攻击、系统故障等原因导致的数据丢失，由您自行承担全部损失。</p>
+                        <p>3. 数据使用规范：您承诺所录入、导入的所有数据均符合法律法规要求，不侵犯任何第三方的合法权益；若因您的数据违规导致我方被投诉、处罚或遭受损失，您应承担全部赔偿责任，我方有权终止您的软件使用权。</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">五、责任与免责条款</h4>
+                        <div>
+                            <h5 class="font-bold mb-2">(一）责任限制</h5>
+                            <p class="mb-2">1. 本软件仅为电商经营辅助工具，计算结果基于您录入的相关数据，仅提供参考，不对您的经营决策、盈亏结果承担任何责任；您应自行验证数据准确性后再作出经营决策。</p>
+                            <p>2. 我方仅对本软件的正常运行提供基础技术支持，不对您因使用本软件产生的任何间接损失（包括但不限于经营亏损、商机流失、名誉损失等）承担责任。</p>
+                        </div>
+                        <div class="mt-4">
+                            <h5 class="font-bold mb-2">(二）免责情形</h5>
+                            <p class="mb-2">1. 因不可抗力（包括但不限于地震、火灾、洪水、台风等自然灾害，网络中断、设备故障、政策调整等不可预见、不可避免的情形）导致本软件无法使用、数据损坏或服务中断的，我方不承担赔偿责任，但会尽力提供技术支持，协助您恢复使用。</p>
+                            <p class="mb-2">2. 因您设备系统不兼容、硬件故障、操作失误、病毒攻击，或第三方软件干扰导致本软件无法正常运行、数据丢失的，我方不承担责任。</p>
+                            <p class="mb-2">3. 因您违反本协议约定、法律法规，或使用破解版、衍生版软件导致的任何损失，由您自行承担，我方不承担任何责任，且有权追究您的违约责任。</p>
+                            <p>4. 因电商平台规则变更、市场环境变化等非我方原因，导致本软件部分功能无法正常使用的，我方不承担赔偿责任，可根据实际情况优化功能或调整服务。</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">六、服务与售后支持</h4>
+                        <p class="mb-2">1. 技术支持范围：我方提供本软件的安装指导、基础操作咨询、功能故障排查等技术支持，回复时限详见本协议第八条；不提供电商经营策略、定价建议、税务合规、财务核算等专业咨询服务。</p>
+                        <p class="mb-2">2. 版本更新：我方有权不定期对本软件进行版本更新、功能优化、漏洞修复，更新内容将通过软件内弹窗、公告等方式通知您；您可自主选择是否更新，未更新导致的软件无法正常使用或功能缺失，由您自行承担责任。</p>
+                        <p class="mb-2">3. 授权终止：若您违反本协议任何条款，我方有权立即终止您的软件使用权，禁止您继续使用本软件及相关服务，且不退还任何已支付的费用（如有）；若您的违规行为导致我方遭受损失，您应承担全部赔偿责任。</p>
+                        <p>4. 服务终止：我方有权根据业务调整、法律法规要求，终止本软件的全部或部分服务，终止前将通过软件内公告、邮件等方式提前通知您，为您预留合理的数据备份时间。</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">七、知识产权与合规条款</h4>
+                        <p class="mb-2">1. 知识产权声明：本软件的商标、logo、程序代码、界面设计、功能逻辑、操作流程、文案内容等全部知识产权均归我方所有，受法律法规保护。禁止您以任何形式抄袭、仿制、篡改、传播上述知识产权内容，否则我方有权追究您的侵权责任。</p>
+                        <p class="mb-2">2. 协议更新：我方有权根据业务发展、法律法规修订，不定期更新本协议条款。更新后的协议将通过软件内公告、弹窗等方式通知您，您继续使用本软件及相关服务，即视为接受更新后的协议条款；若您不同意更新后的条款，应立即停止使用。</p>
+                        <p class="mb-2">3. 法律适用：本协议适用中华人民共和国法律（不包括冲突法规则）。若双方因本协议产生任何争议，应优先协商解决；协商不成的，任何一方均有权向我方所在地有管辖权的人民法院提起诉讼。</p>
+                        <p>4. 合规承诺：双方均应遵守《中华人民共和国网络安全法》《中华人民共和国个人信息保护法》等相关法律法规，共同维护软件使用环境的合法合规。</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">八、联系方式</h4>
+                        <p class="mb-2">如您对本协议有任何疑问、意见、建议，或需要申请技术支持、反馈问题，可通过以下方式联系我们：</p>
+                        <p class="mb-2">官方邮箱：2033268651@qq.com</p>
+                        <p>处理时限：我们将在收到您的请求后30天内核实并回复，复杂问题可适当延长处理时限，并及时告知您进展。</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">九、其他</h4>
+                        <p class="mb-2">1. 本协议自您首次使用本软件之日起生效，直至您停止使用本软件、或我方终止服务之日终止。</p>
+                        <p class="mb-2">2. 本协议未尽事宜，双方可另行协商并签订补充协议，补充协议与本协议具有同等法律效力。</p>
+                        <p>3. 若本协议中任何条款被认定为无效或可撤销，不影响其他条款的法律效力。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button class="modal-button confirm" onclick="closeUserAgreementModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 隐私政策模态框 -->
+    <div id="privacy-policy-modal" class="fixed inset-0 bg-black/0 backdrop-blur-0 flex items-center justify-center z-50 hidden transition-all duration-300" style="z-index: 1001;">
+        <div class="modal-content transform scale-95 opacity-0 transition-all duration-300" style="max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
+            <!-- 固定标题部分 -->
+            <div class="text-center mb-4 border-b border-gray-200 pb-4">
+                <h2 class="modal-title">隐私政策</h2>
+            </div>
+            <!-- 可滚动内容部分 -->
+            <div style="flex: 1; overflow-y: auto; padding-right: 14px;">
+                <div class="space-y-6 text-gray-700">
+                    <p class="text-gray-600">生效日期：2026 年 03 月 28 日</p>
+                    <p class="text-gray-600">发布方：未策软件开发者</p>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">一、引言与适用范围</h4>
+                        <p class="mb-2">欢迎使用未策电商管理软件（以下简称 "本软件"）。本隐私政策旨在说明本软件在您使用过程中，如何处理、保护您的个人信息与经营数据。</p>
+                        <p class="mb-2">协议主体：本政策由未策软件开发者（以下简称 "我方"、"我们"）与软件用户（以下简称 "您"）共同签署。</p>
+                        <p class="mb-2">适用范围：适用于您下载、安装、使用本软件及相关服务的全部行为。</p>
+                        <p class="mb-2">同意约束：您下载、安装、启动本软件，即视为已充分阅读、理解并同意本隐私政策全部条款。若您不同意，请立即停止使用本软件。</p>
+                        <p>关联文件：本政策与《未策软件服务协议》互为补充，共同构成您与我方关于软件使用的完整协议。</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">二、信息收集与使用原则</h4>
+                        <p class="mb-2">我们严格遵循合法、正当、必要、最小化原则处理您的信息：</p>
+                        <p class="mb-2">仅收集提供核心功能所必需的信息，绝不超范围、超目的收集。</p>
+                        <p>所有信息处理行为均符合《中华人民共和国个人信息保护法》《中华人民共和国网络安全法》等法律法规。</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">三、我们收集与处理的信息</h4>
+                        <div>
+                            <h5 class="font-bold mb-2">(一）核心数据处理说明</h5>
+                            <p class="mb-2">本软件为本地离线工具，核心经营数据处理规则如下：</p>
+                            <p class="mb-2">数据存储：您在软件中导入、录入、生成的所有经营数据（含商品成本、利润、采购、订单、推广费用、店铺数据等），仅存储于您的本地设备，不会自动上传至我方服务器。</p>
+                            <p class="mb-2">数据责任：您对所有本地经营数据的真实性、合法性、完整性承担全部责任。</p>
+                            <p>数据备份：软件仅提供本地数据存储，您需定期手动备份数据文件；因设备损坏、误操作、病毒等导致的数据丢失，由您自行承担。</p>
+                        </div>
+                        <div class="mt-4">
+                            <h5 class="font-bold mb-2">(二）个人信息与日志信息收集</h5>
+                            <p class="mb-2">我们不主动收集您的个人身份信息（姓名、手机号、身份证号、电商平台账号等）。仅在以下情形，您主动提供时，我们才会获取：</p>
+                            <p class="mb-2">客服支持：您主动联系客服反馈问题、申请技术支持时，可自愿提供必要信息（如电子邮箱、软件操作截图、设备型号、系统版本），用于问题排查与解决。</p>
+                            <p>日志信息：经您同意后，我们可能获取软件运行日志（仅含功能报错、操作异常记录，不含经营数据），仅用于技术故障修复，处理完毕后立即删除。</p>
+                        </div>
+                        <div class="mt-4">
+                            <h5 class="font-bold mb-2">(三）设备权限调用</h5>
+                            <p class="mb-2">本软件仅申请实现核心功能必需的设备权限：</p>
+                            <p>文件存储权限：用于表格数据导入、本地数据文件保存 / 加载。</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">四、信息共享、转让与公开披露</h4>
+                        <div>
+                            <h5 class="font-bold mb-2">(一）信息共享</h5>
+                            <p class="mb-2">我们不会向任何第三方共享、出售、出租您的个人信息与经营数据，除非：</p>
+                            <p class="mb-2">经您明确、单独同意。</p>
+                            <p class="mb-2">应法律法规、行政或司法机关的强制性要求。</p>
+                            <p>为保护我方、您或第三方的合法权益，且仅限于最小必要范围。</p>
+                        </div>
+                        <div class="mt-4">
+                            <h5 class="font-bold mb-2">(二）信息转让</h5>
+                            <p>我方不会转让您的任何信息；如发生合并、分立等情形，将要求接收方继续受本政策约束。</p>
+                        </div>
+                        <div class="mt-4">
+                            <h5 class="font-bold mb-2">(三）公开披露</h5>
+                            <p>我们不会公开披露您的任何信息，除非法律法规强制要求。</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">五、信息安全保护</h4>
+                        <p class="mb-2">技术措施：采用本地数据加密、访问权限控制等技术，保护您本地存储的数据安全。</p>
+                        <p class="mb-2">人员管理：内部严格限制信息访问权限，仅授权技术人员可接触客服支持相关信息，并签署保密协议。</p>
+                        <p class="mb-2">安全提示：请妥善保管您的设备与数据文件，避免在公共设备或不安全环境中使用本软件。</p>
+                        <p>安全事件：如发生信息泄露、丢失等安全事件，我们将立即启动应急预案，并按法律法规要求通知您与监管部门。</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">六、用户的信息权利</h4>
+                        <p class="mb-2">您对您的信息享有以下权利：</p>
+                        <p class="mb-2">访问与查询：可随时在软件内查看、导出所有本地经营数据。</p>
+                        <p class="mb-2">更正与补充：可自行编辑、修正软件内所有数据内容。</p>
+                        <p class="mb-2">删除与清空：可手动删除单条数据或清空全部本地数据。</p>
+                        <p class="mb-2">撤回授权：可随时关闭设备权限、停止使用软件；撤回不影响此前基于您同意的信息处理。</p>
+                        <p class="mb-2">注销与删除：卸载本软件即可注销使用状态，本地数据将随软件卸载一并清除（请提前备份）。</p>
+                        <div class="mt-4">
+                            <h5 class="font-bold mb-2">权利行使方式</h5>
+                            <p>如需协助行使上述权利，可通过本政策第八条联系方式联系我们，我们将在30 天内响应并处理。</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">七、未成年人信息保护</h4>
+                        <p>本软件面向电商经营者，不面向未成年人。如您是未成年人，请勿使用本软件。若我们发现收集到未成年人信息，将立即删除。</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">八、政策更新</h4>
+                        <p class="mb-2">我们有权根据业务调整、法规更新，不定期修订本政策，修订后的政策将通过软件内公告、弹窗等方式通知您。</p>
+                        <p class="mb-2">政策修订后，您继续使用本软件，即视为接受修订后的条款。</p>
+                        <p>重大变更时，我们将通过显著方式提醒您注意。</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">九、联系我们</h4>
+                        <p class="mb-2">如您对本隐私政策有疑问、意见、建议，或需行使相关权利，请通过以下方式联系：</p>
+                        <p class="mb-2">官方邮箱：2033268651@qq.com</p>
+                        <p>处理时限：我们将在收到您的请求后30 天内核实并回复</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">十、法律适用与争议解决</h4>
+                        <p>本政策适用中华人民共和国法律。如发生争议，双方优先协商解决；协商不成，可向我方所在地有管辖权的人民法院提起诉讼。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button class="modal-button confirm" onclick="closePrivacyPolicyModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 意见反馈模态框 -->
+    <div id="feedback-modal" class="fixed inset-0 bg-black/0 backdrop-blur-0 flex items-center justify-center z-50 hidden transition-all duration-300" style="z-index: 1001;">
+        <div class="modal-content transform scale-95 opacity-0 transition-all duration-300" style="max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
+            <!-- 固定标题部分 -->
+            <div class="text-center mb-4 border-b border-gray-200 pb-4">
+                <h2 class="modal-title">意见反馈</h2>
+            </div>
+            <!-- 可滚动内容部分 -->
+            <div style="flex: 1; overflow-y: auto; padding-right: 14px;">
+                <div class="space-y-4 text-gray-700 font-bold">
+                    <p>您好！</p>
+                    <p>感谢您使用【未策电商管理软件】。为不断优化产品体验、提升功能实用性，我们真诚邀请您提交使用过程中的意见、建议、BUG 问题。</p>
+                    <p class="mt-4">您可以反馈：</p>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li>功能使用问题、卡顿、报错</li>
+                        <li>操作不便、界面不合理</li>
+                        <li>希望新增 / 优化的功能</li>
+                        <li>其他任何不满意的地方</li>
+                    </ul>
+                    <p class="mt-4">反馈方式：</p>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li>发送邮箱：【2033268651@qq.com】</li>
+                        <li>微信客服：【V：FIRMNESS-C】</li>
+                    </ul>
+                    <p>反馈时直接发送问题描述 + 截图</p>
+                    <p>我们会认真查看每一条反馈，尽快优化修复，持续为您提供更稳定、高效的电商管理工具。</p>
+                    <p class="mt-6">为保障您的数据安全与软件稳定使用，请支持正版软件。</p>
+                    <p>正版用户可享受官方持续更新、技术支持与数据安全保障，拒绝破解版、盗版，避免数据丢失、功能异常及安全风险。感谢您尊重知识产权，与我们一起让产品越做越好。</p>
+                    <p>后续版本更新添加官方唯一微信客服【V：FIRMNESS-C】进行获取</p>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button class="modal-button confirm" onclick="closeFeedbackModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 弹窗样式 -->
+    <style>
+        .hidden {
+            display: none !important;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: #ffffff;
+            color: #333;
+            border-radius: 12px;
+            padding: 32px;
+            width: 90%;
+            max-width: 550px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 24px;
+            color: #000;
+        }
+        
+        .modal-text {
+            margin-bottom: 32px;
+            line-height: 1.6;
+            color: #000;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 24px;
+        }
+        
+        .modal-button {
+            padding: 12px 24px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-button.cancel {
+            background-color: #f3f4f6;
+            color: #000;
+            box-shadow: 5px 5px 10px #d1d1d1, -5px -5px 10px #ffffff;
+        }
+        
+        .modal-button.cancel:hover {
+            box-shadow: 3px 3px 6px #d1d1d1, -3px -3px 6px #ffffff;
+            transform: translateY(-2px);
+        }
+        
+        .modal-button.cancel:active {
+            box-shadow: inset 3px 3px 6px #d1d1d1, inset -3px -3px 6px #ffffff;
+            transform: translateY(0);
+        }
+        
+        .modal-button.confirm {
+            background-color: #0066FF;
+            color: white;
+            box-shadow: 5px 5px 10px #0047b3, -5px -5px 10px #ffffff;
+        }
+        
+        .modal-button.confirm:hover {
+            box-shadow: 3px 3px 6px #0047b3, -3px -3px 6px #ffffff;
+            transform: translateY(-2px);
+        }
+        
+        .modal-button.confirm:active {
+            box-shadow: inset 3px 3px 6px #0047b3, inset -3px -3px 6px #ffffff;
+            transform: translateY(0);
+        }
+        
+
+        
+        /* 自定义滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin-right: 2px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d0d0d0;
+        }
+    </style>
+    
+    <!-- 弹窗JavaScript -->
+    <script>
+        // 立即执行函数，避免全局变量冲突
+        (function() {
+            // 标记是否已经检查过协议状态
+            let agreementChecked = false;
+            
+            // 检查用户是否已经同意协议
+            function checkAgreementStatus() {
+                // 防止重复执行
+                if (agreementChecked) {
+                    console.log('协议状态已检查，跳过');
+                    return;
+                }
+                
+                console.log('检查协议状态...');
+                agreementChecked = true;
+                
+                try {
+                    const agreed = localStorage.getItem('userAgreed');
+                    console.log('协议状态:', agreed);
+                    if (!agreed) {
+                        console.log('显示欢迎弹窗...');
+                        // 确保DOM元素存在
+                        setTimeout(function() {
+                            if (document.getElementById('welcome-modal')) {
+                                showWelcomeModal();
+                            } else {
+                                console.error('欢迎弹窗元素不存在');
+                                // 手动创建并显示弹窗
+                                createAndShowModal();
+                            }
+                        }, 100);
+                    }
+                } catch (error) {
+                    console.error('检查协议状态失败:', error);
+                    // 出错时也显示弹窗
+                    createAndShowModal();
+                }
+            }
+            
+            // 显示用户协议模态框
+            function showUserAgreementModal() {
+                console.log('显示用户协议模态框');
+                try {
+                    const modal = document.getElementById('user-agreement-modal');
+                    if (modal) {
+                        modal.classList.remove('hidden');
+                        // 触发重排
+                        modal.offsetHeight;
+                        // 添加背景动画
+                        modal.classList.add('bg-black/30', 'backdrop-blur-md');
+                        // 添加内容动画
+                        const modalContent = modal.querySelector('.modal-content');
+                        if (modalContent) {
+                            modalContent.classList.remove('scale-95', 'opacity-0');
+                            modalContent.classList.add('scale-100', 'opacity-100');
+                        }
+                        console.log('用户协议模态框显示成功');
+                    } else {
+                        console.error('用户协议模态框元素不存在');
+                    }
+                } catch (error) {
+                    console.error('显示用户协议模态框失败:', error);
+                }
+            }
+            
+            // 关闭用户协议模态框
+            function closeUserAgreementModal() {
+                console.log('关闭用户协议模态框');
+                try {
+                    const modal = document.getElementById('user-agreement-modal');
+                    if (modal) {
+                        // 移除背景动画
+                        modal.classList.remove('bg-black/30', 'backdrop-blur-md');
+                        // 移除内容动画
+                        const modalContent = modal.querySelector('.modal-content');
+                        if (modalContent) {
+                            modalContent.classList.remove('scale-100', 'opacity-100');
+                            modalContent.classList.add('scale-95', 'opacity-0');
+                        }
+                        // 动画结束后隐藏模态框
+                        setTimeout(() => {
+                            modal.classList.add('hidden');
+                        }, 300);
+                        console.log('用户协议模态框关闭成功');
+                    } else {
+                        console.error('用户协议模态框元素不存在');
+                    }
+                } catch (error) {
+                    console.error('关闭用户协议模态框失败:', error);
+                }
+            }
+            
+            // 显示隐私政策模态框
+            function showPrivacyPolicyModal() {
+                console.log('显示隐私政策模态框');
+                try {
+                    const modal = document.getElementById('privacy-policy-modal');
+                    if (modal) {
+                        modal.classList.remove('hidden');
+                        // 触发重排
+                        modal.offsetHeight;
+                        // 添加背景动画
+                        modal.classList.add('bg-black/30', 'backdrop-blur-md');
+                        // 添加内容动画
+                        const modalContent = modal.querySelector('.modal-content');
+                        if (modalContent) {
+                            modalContent.classList.remove('scale-95', 'opacity-0');
+                            modalContent.classList.add('scale-100', 'opacity-100');
+                        }
+                        console.log('隐私政策模态框显示成功');
+                    } else {
+                        console.error('隐私政策模态框元素不存在');
+                    }
+                } catch (error) {
+                    console.error('显示隐私政策模态框失败:', error);
+                }
+            }
+            
+            // 关闭隐私政策模态框
+            function closePrivacyPolicyModal() {
+                console.log('关闭隐私政策模态框');
+                try {
+                    const modal = document.getElementById('privacy-policy-modal');
+                    if (modal) {
+                        // 移除背景动画
+                        modal.classList.remove('bg-black/30', 'backdrop-blur-md');
+                        // 移除内容动画
+                        const modalContent = modal.querySelector('.modal-content');
+                        if (modalContent) {
+                            modalContent.classList.remove('scale-100', 'opacity-100');
+                            modalContent.classList.add('scale-95', 'opacity-0');
+                        }
+                        // 动画结束后隐藏模态框
+                        setTimeout(() => {
+                            modal.classList.add('hidden');
+                        }, 300);
+                        console.log('隐私政策模态框关闭成功');
+                    } else {
+                        console.error('隐私政策模态框元素不存在');
+                    }
+                } catch (error) {
+                    console.error('关闭隐私政策模态框失败:', error);
+                }
+            }
+            
+            // 显示意见反馈模态框
+            function showFeedbackModal() {
+                console.log('显示意见反馈模态框');
+                try {
+                    const modal = document.getElementById('feedback-modal');
+                    if (modal) {
+                        modal.classList.remove('hidden');
+                        // 触发重排
+                        modal.offsetHeight;
+                        // 添加背景动画
+                        modal.classList.add('bg-black/30', 'backdrop-blur-md');
+                        // 添加内容动画
+                        const modalContent = modal.querySelector('.modal-content');
+                        if (modalContent) {
+                            modalContent.classList.remove('scale-95', 'opacity-0');
+                            modalContent.classList.add('scale-100', 'opacity-100');
+                        }
+                        console.log('意见反馈模态框显示成功');
+                    } else {
+                        console.error('意见反馈模态框元素不存在');
+                    }
+                } catch (error) {
+                    console.error('显示意见反馈模态框失败:', error);
+                }
+            }
+            
+            // 关闭意见反馈模态框
+            function closeFeedbackModal() {
+                console.log('关闭意见反馈模态框');
+                try {
+                    const modal = document.getElementById('feedback-modal');
+                    if (modal) {
+                        // 移除背景动画
+                        modal.classList.remove('bg-black/30', 'backdrop-blur-md');
+                        // 移除内容动画
+                        const modalContent = modal.querySelector('.modal-content');
+                        if (modalContent) {
+                            modalContent.classList.remove('scale-100', 'opacity-100');
+                            modalContent.classList.add('scale-95', 'opacity-0');
+                        }
+                        // 动画结束后隐藏模态框
+                        setTimeout(() => {
+                            modal.classList.add('hidden');
+                        }, 300);
+                        console.log('意见反馈模态框关闭成功');
+                    } else {
+                        console.error('意见反馈模态框元素不存在');
+                    }
+                } catch (error) {
+                    console.error('关闭意见反馈模态框失败:', error);
+                }
+            }
+            
+            // 显示欢迎弹窗
+            function showWelcomeModal() {
+                console.log('显示欢迎弹窗');
+                try {
+                    const welcomeModal = document.getElementById('welcome-modal');
+                    const disagreeModal = document.getElementById('disagree-modal');
+                    if (welcomeModal && disagreeModal) {
+                        welcomeModal.classList.remove('hidden');
+                        disagreeModal.classList.add('hidden');
+                        
+                        // 开始同意按钮倒计时
+                        const agreeButton = document.getElementById('agree-button');
+                        if (agreeButton) {
+                            let countdown = 6;
+                            agreeButton.innerHTML = `同意 (${countdown}s)`;
+                            agreeButton.style.opacity = '0.6';
+                            agreeButton.style.pointerEvents = 'none';
+                            
+                            const timer = setInterval(() => {
+                                countdown--;
+                                agreeButton.innerHTML = `同意 (${countdown}s)`;
+                                if (countdown <= 0) {
+                                    clearInterval(timer);
+                                    agreeButton.innerHTML = '同意';
+                                    agreeButton.style.opacity = '1';
+                                    agreeButton.style.pointerEvents = 'auto';
+                                }
+                            }, 1000);
+                        }
+                        
+                        console.log('弹窗显示成功');
+                    } else {
+                        console.error('弹窗元素不存在');
+                        createAndShowModal();
+                    }
+                } catch (error) {
+                    console.error('显示弹窗失败:', error);
+                    createAndShowModal();
+                }
+            }
+            
+            // 处理同意
+            function handleAgree() {
+                console.log('用户同意协议');
+                try {
+                    localStorage.setItem('userAgreed', 'true');
+                    const welcomeModal = document.getElementById('welcome-modal');
+                    if (welcomeModal) {
+                        welcomeModal.classList.add('hidden');
+                    }
+                    // 同意后检查登录状态
+                    setTimeout(function() {
+                        if (typeof checkLoginStatus === 'function') {
+                            checkLoginStatus();
+                        }
+                    }, 100);
+                } catch (error) {
+                    console.error('处理同意失败:', error);
+                }
+            }
+            
+            // 处理不同意
+            function handleDisagree() {
+                console.log('用户不同意协议');
+                try {
+                    const welcomeModal = document.getElementById('welcome-modal');
+                    const disagreeModal = document.getElementById('disagree-modal');
+                    if (welcomeModal && disagreeModal) {
+                        welcomeModal.classList.add('hidden');
+                        disagreeModal.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('处理不同意失败:', error);
+                }
+            }
+            
+            // 退出应用
+            function exitApp() {
+                console.log('用户选择退出应用');
+                // 在浏览器环境中，我们无法真正退出应用，只能刷新页面
+                location.reload();
+            }
+            
+            // 撤回同意
+            function withdrawAgreement() {
+                console.log('用户撤回同意');
+                try {
+                    localStorage.removeItem('userAgreed');
+                    showWelcomeModal();
+                } catch (error) {
+                    console.error('撤回同意失败:', error);
+                    showWelcomeModal();
+                }
+            }
+            
+            // 手动创建并显示弹窗（备用方案）
+            function createAndShowModal() {
+                console.log('手动创建弹窗...');
+                
+                // 创建覆盖层
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay';
+                
+                // 创建弹窗内容
+                const content = document.createElement('div');
+                content.className = 'modal-content';
+                content.innerHTML = `
+                    <h2 class="modal-title">欢迎使用 未策</h2>
+                    <div class="modal-text">
+                        <p>我们将通过《用户服务协议》 《隐私权政策》向 您告知我们提供的服务内容及形式、使用本服务 需遵守的规范。同时为了更好地保障您的个人权 益，便于您了解我们如何收集、使用、存储、保 护、对外提供您的个人信息以及您享有的个人信息相关权利。请您在使用本服务前审慎阅读并充 分理解相关内容。</p>
+                        <p class="mt-4">如您已阅读并理解相关条款，请点击"同意"，正 式开启服务！</p>
+                    </div>
+                    <div class="modal-buttons">
+                        <div class="modal-button cancel" onclick="handleDisagree()">不同意</div>
+                        <div class="modal-button confirm" id="manual-agree-button" onclick="handleAgree()" style="opacity: 0.6; pointer-events: none;">同意 (6s)</div>
+                    </div>
+                `;
+                
+                // 添加到页面
+                overlay.appendChild(content);
+                document.body.appendChild(overlay);
+                
+                // 开始同意按钮倒计时
+                const agreeButton = document.getElementById('manual-agree-button');
+                if (agreeButton) {
+                    let countdown = 6;
+                    agreeButton.innerHTML = `同意 (${countdown}s)`;
+                    agreeButton.style.opacity = '0.6';
+                    agreeButton.style.pointerEvents = 'none';
+                    
+                    const timer = setInterval(() => {
+                        countdown--;
+                        agreeButton.innerHTML = `同意 (${countdown}s)`;
+                        if (countdown <= 0) {
+                            clearInterval(timer);
+                            agreeButton.innerHTML = '同意';
+                            agreeButton.style.opacity = '1';
+                            agreeButton.style.pointerEvents = 'auto';
+                        }
+                    }, 1000);
+                }
+                
+                console.log('手动弹窗创建成功');
+            }
+            
+            // 暴露全局函数
+            window.handleAgree = handleAgree;
+            window.handleDisagree = handleDisagree;
+            window.exitApp = exitApp;
+            window.withdrawAgreement = withdrawAgreement;
+            window.showWelcomeModal = showWelcomeModal;
+            window.showUserAgreementModal = showUserAgreementModal;
+            window.closeUserAgreementModal = closeUserAgreementModal;
+            window.showPrivacyPolicyModal = showPrivacyPolicyModal;
+            window.closePrivacyPolicyModal = closePrivacyPolicyModal;
+            window.showFeedbackModal = showFeedbackModal;
+            window.closeFeedbackModal = closeFeedbackModal;
+            
+            // 页面加载时检查协议状态
+            console.log('页面加载中...');
+            
+            // 立即执行一次检查
+            checkAgreementStatus();
+            
+            // 使用DOMContentLoaded
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    console.log('DOM内容加载完成');
+                    checkAgreementStatus();
+                });
+            } else {
+                console.log('DOM内容已加载，立即检查协议状态');
+                checkAgreementStatus();
+            }
+        })();
+    </script>
+    
+    <div id="delete-shop-confirm-modal" class="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 hidden transition-opacity duration-300" style="z-index: 1001;">
         <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 w-full max-w-md shadow-xl border border-white/20 transform transition-all duration-300 hover:shadow-2xl">
             <div class="p-4">
                 <div class="flex justify-between items-center mb-4">
@@ -2848,14 +3663,6 @@
                             <i class="fa fa-info-circle text-lg mr-3"></i>
                             <span class="font-bold text-black">关于软件</span>
                         </a>
-                        <a href="#" class="flex items-center justify-center py-3 text-blue-600 hover:bg-white hover:rounded-lg mx-2 mt-2" data-settings-nav="user-agreement">
-                            <i class="fa fa-file-text text-lg mr-3 text-blue-600"></i>
-                            <span class="font-bold text-blue-600">用户协议</span>
-                        </a>
-                        <a href="#" class="flex items-center justify-center py-3 text-blue-600 hover:bg-white hover:rounded-lg mx-2 mt-2" data-settings-nav="privacy-policy">
-                            <i class="fa fa-shield text-lg mr-3 text-blue-600"></i>
-                            <span class="font-bold text-blue-600">隐私政策</span>
-                        </a>
                     </nav>
                 </div>
 
@@ -3110,8 +3917,8 @@
   <span class="font-bold">3. 隐性成本全覆盖：</span>快递费、广告费、优惠券、退货率等电商常见的隐性成本，全部纳入计算模型，利润算得更真实，不再被表面数据误导。<br>
   <span class="font-bold">4. 经营数据可视化：</span>数据看板把复杂的经营数据变成直观的指标和排行，哪怕是不懂财务的商家，也能一眼看懂生意情况。</div>
                                             
-                                            <div><span style="font-size: 1.2em; font-weight: bold;">三、计算结果说明:</span>本软件计算结果基于用户录入的成本、推广费、售价等数据，仅供参考，详细请查看 <a href="#" class="text-blue-600 font-bold" onclick="document.querySelector('[data-settings-nav=user-agreement]').click(); return false;">用户协议</a>；</div>
-                                            <div><span style="font-size: 1.2em; font-weight: bold;">四、数据安全说明:</span>本软件不联网不上传数据，所有数据均本地处理，请妥善保管好数据，丢失无法找回，详细请查看 <a href="#" class="text-blue-600 font-bold" onclick="document.querySelector('[data-settings-nav=privacy-policy]').click(); return false;">隐私政策</a>。</div>
+                                            <div><span style="font-size: 1.2em; font-weight: bold;">三、计算结果说明:</span>本软件计算结果基于用户录入的成本、推广费、售价等数据，仅供参考，详细请查看 <a href="#" class="text-blue-600 font-bold" onclick="showUserAgreementModal(); return false;">用户协议</a>；</div>
+                                            <div><span style="font-size: 1.2em; font-weight: bold;">四、数据安全说明:</span>本软件不联网不上传数据，所有数据均本地处理，请妥善保管好数据，丢失无法找回，详细请查看 <a href="#" class="text-blue-600 font-bold" onclick="showPrivacyPolicyModal(); return false;">隐私政策</a>。</div>
                                             <div><span style="font-size: 1.2em; font-weight: bold;">五、软件详细使用说明文档</span>，添加官方唯一微信【V：FIRMNESS-C】或扫底部微信二维码，进行获取。</div>
                                         </div>
                                         
@@ -3140,270 +3947,39 @@
                     <div id="about-software" class="settings-nav-content hidden">
                         <div class="max-w-6xl">
                             <div class="bg-white rounded-lg shadow-lg p-8 flex flex-col min-h-[300px]">
-                                <div class="mb-6">
-                                    <h3 class="text-2xl font-semibold text-gray-800">关于软件</h3>
+                                <div class="mb-8 flex flex-col items-center">
+                                    <img src="images/weice_logo.png" alt="未策" class="h-36 mb-4">
+                                    <p class="text-lg text-black font-bold">版本：V1.0.6</p>
                                 </div>
-                                <div>
-                                    <div>
-                                        <p class="text-lg text-blue-600 font-bold">当前版本：V1.0.5</p>
+                                <div class="mt-6">
+                                    <div class="flex justify-center space-x-6 items-center">
+                                        <span class="text-blue-600 cursor-pointer font-bold" onclick="showUserAgreementModal()">用户协议</span>
+                                        <span class="text-gray-300 font-bold">|</span>
+                                        <span class="text-blue-600 cursor-pointer font-bold" onclick="showPrivacyPolicyModal()">隐私政策</span>
+                                        <span class="text-gray-300 font-bold">|</span>
+                                        <span class="text-blue-600 cursor-pointer font-bold" onclick="showFeedbackModal()">意见反馈</span>
                                     </div>
-                                    
-                                    <div class="mt-12">
-                                        <h3 class="text-xl font-bold text-gray-800 mb-4">意见反馈</h3>
-                                        <div class="space-y-4 text-gray-700 font-bold">
-                                            <p>您好！</p>
-                                            <p>感谢您使用【未策电商管理软件】。为不断优化产品体验、提升功能实用性，我们真诚邀请您提交使用过程中的意见、建议、BUG 问题。</p>
-                                            <p class="mt-4">您可以反馈：</p>
-                                            <ul class="list-disc pl-6 space-y-2">
-                                                <li>功能使用问题、卡顿、报错</li>
-                                                <li>操作不便、界面不合理</li>
-                                                <li>希望新增 / 优化的功能</li>
-                                                <li>其他任何不满意的地方</li>
-                                            </ul>
-                                            <p class="mt-4">反馈方式：</p>
-                                            <ul class="list-disc pl-6 space-y-2">
-                                                <li>发送邮箱：【2033268651@qq.com】</li>
-                                                <li>微信客服：【V：FIRMNESS-C】</li>
-                                            </ul>
-                                            <p>反馈时直接发送问题描述 + 截图</p>
-                                            <p>我们会认真查看每一条反馈，尽快优化修复，持续为您提供更稳定、高效的电商管理工具。</p>
-                                            <p class="mt-6">为保障您的数据安全与软件稳定使用，请支持正版软件。</p>
-                                            <p>正版用户可享受官方持续更新、技术支持与数据安全保障，拒绝破解版、盗版，避免数据丢失、功能异常及安全风险。感谢您尊重知识产权，与我们一起让产品越做越好。</p>
-                                            <p>后续版本更新添加官方唯一微信客服【V：FIRMNESS-C】进行获取</p>
-                                        </div>
+                                    <div class="mt-4 flex justify-center">
+                                        <span class="text-gray-400 cursor-pointer font-bold" onclick="withdrawAgreement()">撤回同意</span>
                                     </div>
                                 </div>
                                 <div class="mt-auto pt-6">
                                     <hr class="border-gray-200 mb-6">
-                                    <p class="text-gray-600 text-center" style="font-size: 12px;">未策Wiseway 版权所有</p>
-                                    <p class="text-gray-600 text-center" style="font-size: 12px;">Copyright ©️ 2025-2026 Wiseway. All Rights Reserved.</p>
+                                    <p class="text-black text-center" style="font-size: 12px;">未策Wiseway 版权所有</p>
+                                    <p class="text-black text-center" style="font-size: 12px;">Copyright ©️ 2025-2026 Wiseway. All Rights Reserved.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- User Agreement Section -->
-                    <div id="user-agreement" class="settings-nav-content hidden">
-                        <div class="max-w-6xl">
-                            <div class="bg-white rounded-lg shadow-lg p-8 flex flex-col min-h-[300px]">
-                                <div class="mb-6">
-                                    <h3 class="text-2xl font-semibold text-gray-800">用户服务协议</h3>
-                                    <p class="text-gray-600 mt-2">生效日期：2026年03月28日</p>
-                                </div>
-                                <div class="space-y-6 text-gray-700">
-                                    <p>欢迎你使用未策电商管理软件及服务!</p>
-                                    <p></p>
-                                    <p class="mb-4">协议主体：本协议由「未策电商管理软件」（以下简称"本软件"）的开发者（以下简称"我方"、"我们"）与使用本软件及相关服务的用户（以下简称"您"、"用户"）共同签署，是双方关于软件使用及服务的核心权利义务约定。</p>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">一、协议适用范围</h4>
-                                        <p class="mb-2">1. 本协议适用于您下载、安装、启动、使用本软件及我方提供的相关配套服务（以下统称"服务"）的全部行为，涵盖个人用户、企业用户等所有使用主体。</p>
-                                        <p class="mb-2">2. 您下载、安装、启动本软件，或首次使用本软件服务，即视为已充分阅读、理解并自愿接受本协议全部条款（包括但不限于免责条款、限制责任条款），自愿受本协议约束。</p>
-                                        <p class="mb-2">3. 若您不同意本协议任何内容，或不同意我方后续对协议的修订，应立即停止下载、安装、使用本软件及相关服务，双方之间不产生任何权利义务关系。</p>
-                                        <p>4. 本协议与《未策电商管理软件隐私政策》互为补充，共同构成您与我方关于软件使用及服务的完整协议；若两者条款存在冲突，以《隐私政策》中关于信息保护的专项约定为准。</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">二、软件核心功能与服务内容</h4>
-                                        <p class="mb-2">本软件是专为中小电商卖家打造的一站式利润核算与经营管理工具，核心功能及服务范围如下，我方有权根据业务需求不定期优化、调整功能（重大调整将通过软件内公告通知）：</p>
-                                        <p class="mb-2">1. 利润核算服务：支持一键导入表格、手动录入广告费等相关成本数据，自动统计多链接、小单量链接的精准利润，解决手工核算耗时、易漏算、易出错的问题，为您提供利润参考数据。</p>
-                                        <p class="mb-2">2. 新品定价服务：根据您录入的成本、期望利润等参数，自动计算折扣、优惠券后的合理定价及保本投产比，协助您解决新手定价、多链接活动价管理等难题。</p>
-                                        <p class="mb-2">3. 数据管理服务：支持核算数据的本地保存、加载及批量加载，提供单店铺、多店铺数据概览功能，支持月度、季度、年度数据分析，方便您查看经营趋势。</p>
-                                        <p class="mb-2">4. 成本/采购管理服务：包含成本项目自定义管理、规格与成本联动设置、采购登记及收货状态管理，实现全链路经营数据的本地自动同步更新。</p>
-                                        <p class="mb-2">5. 多店铺管理服务：支持商品ID与店铺、电商平台的绑定操作，自动区分商品归属，实现多店铺经营数据的统一管理、集中查看。</p>
-                                        <p>6. 配套基础服务：提供软件版本更新提示、基础操作咨询、功能故障排查等技术支持服务（不包含电商经营策略、定价建议、税务合规等专业咨询服务）。</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">三、软件授权与使用规则</h4>
-                                        <div>
-                                            <h5 class="font-bold mb-2">(一）授权许可</h5>
-                                            <p>我方授予您本软件的非独占、不可转让、不可再许可的合法使用权，您仅可将本软件用于自身合法的电商经营活动，仅限个人或本企业内部使用，不得用于任何商业转售、出租、出借、分享等盈利性用途。</p>
-                                        </div>
-                                        <div class="mt-4">
-                                            <h5 class="font-bold mb-2">(二）使用限制</h5>
-                                            <p class="mb-2">1. 禁止您对本软件进行破解、逆向工程、反编译、篡改程序代码、绕过授权验证，或制作、传播本软件的破解版本、衍生版本。</p>
-                                            <p class="mb-2">2. 禁止您利用本软件从事任何违法违规行为，包括但不限于非法经营、洗钱、偷税漏税、虚假交易、侵害第三方知识产权或其他合法权益等。</p>
-                                            <p class="mb-2">3. 禁止您利用本软件传输、存储违法、低俗、侵权等违规内容，或利用软件干扰我方服务正常运行、影响其他用户使用体验。</p>
-                                            <p>4. 您应自行确保使用本软件的设备符合软件运行要求，妥善保管设备及软件账号（如有），因设备丢失、账号泄露导致的损失，由您自行承担。</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">四、数据权责约定</h4>
-                                        <p class="mb-2">1. 数据责任归属：您对所有导入、录入、存储在本软件内的经营数据（包括但不限于商品成本、订单信息、推广费用、店铺数据等）的真实性、合法性、完整性承担全部责任。若因数据错误、遗漏、虚假导致您或第三方遭受损失，由您自行承担，我方不承担任何赔偿责任。</p>
-                                        <p class="mb-2">2. 数据存储与备份：本软件仅支持本地数据存储，不自动上传您的任何经营数据至我方服务器（具体详见《隐私政策》）。您应定期手动备份本地数据文件，我方不提供数据恢复服务；因设备损坏、误操作、病毒攻击、系统故障等原因导致的数据丢失，由您自行承担全部损失。</p>
-                                        <p>3. 数据使用规范：您承诺所录入、导入的所有数据均符合法律法规要求，不侵犯任何第三方的合法权益；若因您的数据违规导致我方被投诉、处罚或遭受损失，您应承担全部赔偿责任，我方有权终止您的软件使用权。</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">五、责任与免责条款</h4>
-                                        <div>
-                                            <h5 class="font-bold mb-2">(一）责任限制</h5>
-                                            <p class="mb-2">1. 本软件仅为电商经营辅助工具，计算结果基于您录入的相关数据，仅提供参考，不对您的经营决策、盈亏结果承担任何责任；您应自行验证数据准确性后再作出经营决策。</p>
-                                            <p>2. 我方仅对本软件的正常运行提供基础技术支持，不对您因使用本软件产生的任何间接损失（包括但不限于经营亏损、商机流失、名誉损失等）承担责任。</p>
-                                        </div>
-                                        <div class="mt-4">
-                                            <h5 class="font-bold mb-2">(二）免责情形</h5>
-                                            <p class="mb-2">1. 因不可抗力（包括但不限于地震、火灾、洪水、台风等自然灾害，网络中断、设备故障、政策调整等不可预见、不可避免的情形）导致本软件无法使用、数据损坏或服务中断的，我方不承担赔偿责任，但会尽力提供技术支持，协助您恢复使用。</p>
-                                            <p class="mb-2">2. 因您设备系统不兼容、硬件故障、操作失误、病毒攻击，或第三方软件干扰导致本软件无法正常运行、数据丢失的，我方不承担责任。</p>
-                                            <p class="mb-2">3. 因您违反本协议约定、法律法规，或使用破解版、衍生版软件导致的任何损失，由您自行承担，我方不承担任何责任，且有权追究您的违约责任。</p>
-                                            <p>4. 因电商平台规则变更、市场环境变化等非我方原因，导致本软件部分功能无法正常使用的，我方不承担赔偿责任，可根据实际情况优化功能或调整服务。</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">六、服务与售后支持</h4>
-                                        <p class="mb-2">1. 技术支持范围：我方提供本软件的安装指导、基础操作咨询、功能故障排查等技术支持，回复时限详见本协议第八条；不提供电商经营策略、定价建议、税务合规、财务核算等专业咨询服务。</p>
-                                        <p class="mb-2">2. 版本更新：我方有权不定期对本软件进行版本更新、功能优化、漏洞修复，更新内容将通过软件内弹窗、公告等方式通知您；您可自主选择是否更新，未更新导致的软件无法正常使用或功能缺失，由您自行承担责任。</p>
-                                        <p class="mb-2">3. 授权终止：若您违反本协议任何条款，我方有权立即终止您的软件使用权，禁止您继续使用本软件及相关服务，且不退还任何已支付的费用（如有）；若您的违规行为导致我方遭受损失，您应承担全部赔偿责任。</p>
-                                        <p>4. 服务终止：我方有权根据业务调整、法律法规要求，终止本软件的全部或部分服务，终止前将通过软件内公告、邮件等方式提前通知您，为您预留合理的数据备份时间。</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">七、知识产权与合规条款</h4>
-                                        <p class="mb-2">1. 知识产权声明：本软件的商标、logo、程序代码、界面设计、功能逻辑、操作流程、文案内容等全部知识产权均归我方所有，受法律法规保护。禁止您以任何形式抄袭、仿制、篡改、传播上述知识产权内容，否则我方有权追究您的侵权责任。</p>
-                                        <p class="mb-2">2. 协议更新：我方有权根据业务发展、法律法规修订，不定期更新本协议条款。更新后的协议将通过软件内公告、弹窗等方式通知您，您继续使用本软件及相关服务，即视为接受更新后的协议条款；若您不同意更新后的条款，应立即停止使用。</p>
-                                        <p class="mb-2">3. 法律适用：本协议适用中华人民共和国法律（不包括冲突法规则）。若双方因本协议产生任何争议，应优先协商解决；协商不成的，任何一方均有权向我方所在地有管辖权的人民法院提起诉讼。</p>
-                                        <p>4. 合规承诺：双方均应遵守《中华人民共和国网络安全法》《中华人民共和国个人信息保护法》等相关法律法规，共同维护软件使用环境的合法合规。</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">八、联系方式</h4>
-                                        <p class="mb-2">如您对本协议有任何疑问、意见、建议，或需要申请技术支持、反馈问题，可通过以下方式联系我们：</p>
-                                        <p class="mb-2">官方邮箱：2033268651@qq.com</p>
-                                        <p>处理时限：我们将在收到您的请求后30天内核实并回复，复杂问题可适当延长处理时限，并及时告知您进展。</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">九、其他</h4>
-                                        <p class="mb-2">1. 本协议自您首次使用本软件之日起生效，直至您停止使用本软件、或我方终止服务之日终止。</p>
-                                        <p class="mb-2">2. 本协议未尽事宜，双方可另行协商并签订补充协议，补充协议与本协议具有同等法律效力。</p>
-                                        <p>3. 若本协议中任何条款被认定为无效或可撤销，不影响其他条款的法律效力。</p>
-                                    </div>
+
+
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Privacy Policy Section -->
-                    <div id="privacy-policy" class="settings-nav-content hidden">
-                        <div class="max-w-6xl">
-                            <div class="bg-white rounded-lg shadow-lg p-8 flex flex-col min-h-[300px]">
-                                <div class="mb-6">
-                                    <h3 class="text-2xl font-semibold text-gray-800">隐私政策</h3>
-                                    <p class="text-gray-600 mt-2">生效日期：2026 年 03 月 28 日</p>
-                                    <p class="text-gray-600">发布方：未策软件开发者</p>
-                                </div>
-                                <div class="space-y-6 text-gray-700">
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">一、引言与适用范围</h4>
-                                        <p class="mb-2">欢迎使用未策电商管理软件（以下简称 "本软件"）。本隐私政策旨在说明本软件在您使用过程中，如何处理、保护您的个人信息与经营数据。</p>
-                                        <p class="mb-2">协议主体：本政策由未策软件开发者（以下简称 "我方"、"我们"）与软件用户（以下简称 "您"）共同签署。</p>
-                                        <p class="mb-2">适用范围：适用于您下载、安装、使用本软件及相关服务的全部行为。</p>
-                                        <p class="mb-2">同意约束：您下载、安装、启动本软件，即视为已充分阅读、理解并同意本隐私政策全部条款。若您不同意，请立即停止使用本软件。</p>
-                                        <p>关联文件：本政策与《未策软件服务协议》互为补充，共同构成您与我方关于软件使用的完整协议。</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">二、信息收集与使用原则</h4>
-                                        <p class="mb-2">我们严格遵循合法、正当、必要、最小化原则处理您的信息：</p>
-                                        <p class="mb-2">仅收集提供核心功能所必需的信息，绝不超范围、超目的收集。</p>
-                                        <p>所有信息处理行为均符合《中华人民共和国个人信息保护法》《中华人民共和国网络安全法》等法律法规。</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">三、我们收集与处理的信息</h4>
-                                        <div>
-                                            <h5 class="font-bold mb-2">(一）核心数据处理说明</h5>
-                                            <p class="mb-2">本软件为本地离线工具，核心经营数据处理规则如下：</p>
-                                            <p class="mb-2">数据存储：您在软件中导入、录入、生成的所有经营数据（含商品成本、利润、采购、订单、推广费用、店铺数据等），仅存储于您的本地设备，不会自动上传至我方服务器。</p>
-                                            <p class="mb-2">数据责任：您对所有本地经营数据的真实性、合法性、完整性承担全部责任。</p>
-                                            <p>数据备份：软件仅提供本地数据存储，您需定期手动备份数据文件；因设备损坏、误操作、病毒等导致的数据丢失，由您自行承担。</p>
-                                        </div>
-                                        <div class="mt-4">
-                                            <h5 class="font-bold mb-2">(二）个人信息与日志信息收集</h5>
-                                            <p class="mb-2">我们不主动收集您的个人身份信息（姓名、手机号、身份证号、电商平台账号等）。仅在以下情形，您主动提供时，我们才会获取：</p>
-                                            <p class="mb-2">客服支持：您主动联系客服反馈问题、申请技术支持时，可自愿提供必要信息（如电子邮箱、软件操作截图、设备型号、系统版本），用于问题排查与解决。</p>
-                                            <p>日志信息：经您同意后，我们可能获取软件运行日志（仅含功能报错、操作异常记录，不含经营数据），仅用于技术故障修复，处理完毕后立即删除。</p>
-                                        </div>
-                                        <div class="mt-4">
-                                            <h5 class="font-bold mb-2">(三）设备权限调用</h5>
-                                            <p class="mb-2">本软件仅申请实现核心功能必需的设备权限：</p>
-                                            <p class="mb-2">文件存储权限：用于表格数据导入、本地数据文件保存 / 加载。</p>
-                                            <p>网络权限（可选）：仅用于软件版本更新检测、客服消息收发；不用于数据上传。</p>
-                                            <p>您可在设备系统设置中随时开启或关闭上述权限，关闭后不影响软件核心功能使用。</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">四、信息共享、转让与公开披露</h4>
-                                        <div>
-                                            <h5 class="font-bold mb-2">(一）信息共享</h5>
-                                            <p class="mb-2">我们不会向任何第三方共享、出售、出租您的个人信息与经营数据，除非：</p>
-                                            <p class="mb-2">经您明确、单独同意。</p>
-                                            <p class="mb-2">应法律法规、行政或司法机关的强制性要求。</p>
-                                            <p>为保护我方、您或第三方的合法权益，且仅限于最小必要范围。</p>
-                                        </div>
-                                        <div class="mt-4">
-                                            <h5 class="font-bold mb-2">(二）信息转让</h5>
-                                            <p>我方不会转让您的任何信息；如发生合并、分立等情形，将要求接收方继续受本政策约束。</p>
-                                        </div>
-                                        <div class="mt-4">
-                                            <h5 class="font-bold mb-2">(三）公开披露</h5>
-                                            <p>我们不会公开披露您的任何信息，除非法律法规强制要求。</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">五、信息安全保护</h4>
-                                        <p class="mb-2">技术措施：采用本地数据加密、访问权限控制等技术，保护您本地存储的数据安全。</p>
-                                        <p class="mb-2">人员管理：内部严格限制信息访问权限，仅授权技术人员可接触客服支持相关信息，并签署保密协议。</p>
-                                        <p class="mb-2">安全提示：请妥善保管您的设备与数据文件，避免在公共设备或不安全环境中使用本软件。</p>
-                                        <p>安全事件：如发生信息泄露、丢失等安全事件，我们将立即启动应急预案，并按法律法规要求通知您与监管部门。</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">六、用户的信息权利</h4>
-                                        <p class="mb-2">您对您的信息享有以下权利：</p>
-                                        <p class="mb-2">访问与查询：可随时在软件内查看、导出所有本地经营数据。</p>
-                                        <p class="mb-2">更正与补充：可自行编辑、修正软件内所有数据内容。</p>
-                                        <p class="mb-2">删除与清空：可手动删除单条数据或清空全部本地数据。</p>
-                                        <p class="mb-2">撤回授权：可随时关闭设备权限、停止使用软件；撤回不影响此前基于您同意的信息处理。</p>
-                                        <p class="mb-2">注销与删除：卸载本软件即可注销使用状态，本地数据将随软件卸载一并清除（请提前备份）。</p>
-                                        <div class="mt-4">
-                                            <h5 class="font-bold mb-2">权利行使方式</h5>
-                                            <p>如需协助行使上述权利，可通过本政策第八条联系方式联系我们，我们将在30 天内响应并处理。</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">七、未成年人信息保护</h4>
-                                        <p>本软件面向电商经营者，不面向未成年人。如您是未成年人，请勿使用本软件。若我们发现收集到未成年人信息，将立即删除。</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">八、政策更新</h4>
-                                        <p class="mb-2">我们有权根据业务调整、法规更新，不定期修订本政策，修订后的政策将通过软件内公告、弹窗等方式通知您。</p>
-                                        <p class="mb-2">政策修订后，您继续使用本软件，即视为接受修订后的条款。</p>
-                                        <p>重大变更时，我们将通过显著方式提醒您注意。</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">九、联系我们</h4>
-                                        <p class="mb-2">如您对本隐私政策有疑问、意见、建议，或需行使相关权利，请通过以下方式联系：</p>
-                                        <p class="mb-2">官方邮箱：2033268651@qq.com</p>
-                                        <p>处理时限：我们将在收到您的请求后30 天内核实并回复</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="font-bold text-lg mb-2">十、法律适用与争议解决</h4>
-                                        <p>本政策适用中华人民共和国法律。如发生争议，双方优先协商解决；协商不成，可向我方所在地有管辖权的人民法院提起诉讼。</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -3425,7 +4001,8 @@
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -3433,12 +4010,23 @@
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -7734,7 +8322,8 @@
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -7742,12 +8331,23 @@
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -7926,7 +8526,8 @@
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -7934,12 +8535,23 @@
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -11891,34 +12503,37 @@ ${shopsMap[link.shop]}
                                                 <i class="fa fa-bars text-gray-400 hover:text-gray-600" style="font-size: 14px;"></i>
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap">
-                                                <div class="relative flex items-center space-x-2">
+                                                <div class="flex items-center space-x-2">
                                                     <div class="tooltip-container">
                                                         <div class="w-3 h-3 rounded-full" style="background-color: ${spec.color || '#9ca3af'};"></div>
                                                         ${spec.note ? `<div class="tooltip-content max-w-xs">${spec.note.replace(/\n/g, '<br>')}</div><div class="tooltip-arrow"></div>` : ''}
                                                     </div>
                                                     <input type="text"
-                                                           class="input-field text-sm py-1 px-2 sku-input"
+                                                           class="input-field text-sm py-1 px-2 sku-input transition-all duration-500 ease-in-out"
                                                            value="${spec.skuCode || ''}"
                                                            maxlength="32"
                                                            placeholder="请输入SKU" 
-                                                           style="min-width: 120px;"
+                                                           style="min-width: 150px; max-width: 150px;"
+                                                           onfocus="const table = this.closest('table'); table.querySelectorAll('.sku-input').forEach(input => { input.style.minWidth='400px'; input.style.maxWidth='400px'; });"
+                                                           onblur="const table = this.closest('table'); table.querySelectorAll('.sku-input').forEach(input => { input.style.minWidth='150px'; input.style.maxWidth='150px'; });"
                                                            onchange="updateSpecField(${linkIndex}, ${productIndex}, ${specIndex}, 'skuCode', this.value)">
-                                                    ${spec.skuCode ? `<button type="button" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600" onclick="clearSKU(this, ${linkIndex}, ${productIndex}, ${specIndex})">
-                                                        <i class="fa fa-times-circle"></i>
-                                                    </button>` : ''}
                                                 </div>
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap">
-                                                <input type="text" class="input-field text-sm py-1 px-2" value="${spec.specCode || ''}" 
-                                                       onchange="updateSpecFieldWithUnlink(${linkIndex}, ${productIndex}, ${specIndex}, 'specCode', this.value)"
-                                                       placeholder="请输入规格编码" style="min-width: 180px;" pattern=".*" title="可以输入任何字符">
+                                                <div class="flex items-center">
+                                                    <input type="text" class="input-field text-sm py-1 px-2 spec-code-input transition-all duration-500 ease-in-out" value="${spec.specCode || ''}" 
+                                                           onchange="updateSpecFieldWithUnlink(${linkIndex}, ${productIndex}, ${specIndex}, 'specCode', this.value)"
+                                                           onfocus="const table = this.closest('table'); table.querySelectorAll('.spec-code-input').forEach(input => { input.style.minWidth='400px'; input.style.maxWidth='400px'; });"
+                                                           onblur="const table = this.closest('table'); table.querySelectorAll('.spec-code-input').forEach(input => { input.style.minWidth='150px'; input.style.maxWidth='150px'; });"
+                                                           placeholder="请输入规格编码" style="min-width: 150px; max-width: 150px;" pattern=".*" title="可以输入任何字符">
+                                                </div>
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-center">
                                                 <div class="flex items-center justify-center space-x-1">
                                                     <input type="number" class="input-field text-sm py-1 px-2 text-center" value="${parseFloat(cost).toFixed(2)}" 
                                                            step="0.01" min="0" 
                                                            onchange="updateSpecField(${linkIndex}, ${productIndex}, ${specIndex}, 'cost', this.value); removeCostLink(${linkIndex}, ${productIndex}, ${specIndex})" 
-                                                           style="max-width: 90px;"
+                                                           style="min-width: 80px; max-width: 80px;"
                                                            data-linked="${spec.linkedCost ? 'true' : 'false'}"
                                                            ${spec.linkedCost ? 'readonly' : ''}>
                                                     <button type="button" 
@@ -11935,20 +12550,20 @@ ${shopsMap[link.shop]}
                                                     <input type="number" class="input-field text-sm py-1 px-2 text-center" 
                                                            value="${couponAmount}" 
                                                            step="0.01" min="0" 
-                                                           onchange="updateSpecField(${linkIndex}, ${productIndex}, ${specIndex}, 'couponAmount', this.value)" style="max-width: 90px;">
+                                                           onchange="updateSpecField(${linkIndex}, ${productIndex}, ${specIndex}, 'couponAmount', this.value)" style="min-width: 80px; max-width: 80px;">
                                                 </div>
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-center">
                                                 <input type="number" class="input-field text-sm py-1 px-2 text-center" 
                                                        value="${safeActivityDiscount}" 
                                                        step="0.01" min="0.01" max="1" 
-                                                       onchange="updateSpecField(${linkIndex}, ${productIndex}, ${specIndex}, 'activityDiscount', this.value)" style="max-width: 90px;">
+                                                       onchange="updateSpecField(${linkIndex}, ${productIndex}, ${specIndex}, 'activityDiscount', this.value)" style="min-width: 80px; max-width: 80px;">
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-center">
                                                 <input type="number" class="input-field text-sm py-1 px-2 text-center" 
                                                        value="${parseFloat(spec.signRate || 100).toFixed(2)}" 
                                                        step="0.01" min="0" max="100" 
-                                                       onchange="updateSpecField(${linkIndex}, ${productIndex}, ${specIndex}, 'signRate', this.value)" style="max-width: 100px;">
+                                                       onchange="updateSpecField(${linkIndex}, ${productIndex}, ${specIndex}, 'signRate', this.value)" style="min-width: 80px; max-width: 80px;">
                                             </td>
                                             <td class="px-3 py-2 whitespace-nowrap text-center">
                                                 <div class="flex items-center justify-center space-x-1">
@@ -11956,7 +12571,7 @@ ${shopsMap[link.shop]}
                                                            value="${parseFloat(sellingPrice).toFixed(2)}" 
                                                            step="0.01" min="0" 
                                                            onchange="updateSpecField(${linkIndex}, ${productIndex}, ${specIndex}, 'sellingPrice', this.value)" 
-                                                           style="max-width: 110px;"
+                                                           style="min-width: 80px; max-width: 80px;"
                                                            ${sellingPriceLocked[`${link.id}-${product.id}-${spec.id || specIndex}`] ? 'readonly' : ''}>
                                                     <button type="button" 
                                                             class="text-sm p-1 rounded hover:bg-gray-100 transition-colors duration-200 ${sellingPriceLocked[`${link.id}-${product.id}-${spec.id || specIndex}`] ? 'text-primary' : 'text-gray-500'}"
@@ -12283,6 +12898,9 @@ ${shopsMap[link.shopId]}
                 const currentState = breakEvenAutoCalculation[key] || false;
                 breakEvenAutoCalculation[key] = !currentState;
                 
+                // 保存自动计算状态到本地存储
+                localStorage.setItem('breakEvenAutoCalculation', JSON.stringify(breakEvenAutoCalculation));
+                
                 // 如果切换到锁定状态，保存当前计算值作为固定值
                 if (breakEvenAutoCalculation[key]) {
                     const sellingPrice = parseFloat(spec.sellingPrice || 0) || 0;
@@ -12317,6 +12935,9 @@ ${shopsMap[link.shopId]}
                 // 切换锁定状态
                 const currentState = sellingPriceLocked[key] || false;
                 sellingPriceLocked[key] = !currentState;
+                
+                // 保存锁定状态到本地存储
+                localStorage.setItem('sellingPriceLocked', JSON.stringify(sellingPriceLocked));
                 
                 // 重新渲染显示链接
                 renderDisplayLinks();
@@ -13168,9 +13789,9 @@ ${shopsMap[link.shopId]}
             let currentViewingProductIndex = -1;
             
             // 存储每个规格的保本投产比自动计算状态
-            let breakEvenAutoCalculation = {};
+            let breakEvenAutoCalculation = JSON.parse(localStorage.getItem('breakEvenAutoCalculation')) || {};
             // 存储每个规格的售卖价锁定状态
-            let sellingPriceLocked = {};
+            let sellingPriceLocked = JSON.parse(localStorage.getItem('sellingPriceLocked')) || {};
             
             // 查看链接详情
             function viewLinkDetails(index) {
@@ -15156,7 +15777,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -15164,12 +15786,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -15721,7 +16354,7 @@ ${shopsMap[link.shopId]}
         <!-- Cost Records Tab -->
         <div id="cost-records" class="tab-content hidden animate-fadeIn">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-gray-800" style="font-size: 22px;">细化成本管理</h2>
+                <h2 class="text-xl font-semibold text-gray-800" style="font-size: 22px;">成本数据库</h2>
                 <div class="flex items-center space-x-2">
                     <div class="relative">
                         <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -15748,7 +16381,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -15756,12 +16390,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -16287,17 +16932,17 @@ ${shopsMap[link.shopId]}
                                 <col style="width: 100px;">
                                 <col style="width: 100px;">
                             </colgroup>
-                            <thead class="shadow-md bg-gradient-to-r from-blue-100 to-indigo-100">
+                            <thead class="shadow-md bg-gray-50">
                                 <tr>
-                                    <th class="px-4 py-5 bg-gradient-to-r from-blue-100 to-indigo-100 text-center text-base font-semibold text-gray-800 border-b border-gray-300">
+                                    <th class="px-4 py-5 bg-gray-50 text-center text-base font-semibold text-gray-800 border-b border-gray-300">
                                         <input type="checkbox" id="select-all-skus" class="h-4 w-4 text-primary focus:ring-primary">
                                     </th>
-                                    <th class="px-4 py-5 bg-gradient-to-r from-blue-100 to-indigo-100 text-center text-base font-semibold text-gray-800 border-b border-gray-300">规格编码</th>
-                                    <th class="px-4 py-5 bg-gradient-to-r from-blue-100 to-indigo-100 text-center text-base font-semibold text-gray-800 border-b border-gray-300">手动成本 (元)</th>
-                                    <th class="px-4 py-5 bg-gradient-to-r from-blue-100 to-indigo-100 text-center text-base font-semibold text-gray-800 border-b border-gray-300">引用成本 (元)</th>
-                                    <th class="px-4 py-5 bg-gradient-to-r from-blue-100 to-indigo-100 text-center text-base font-semibold text-gray-800 border-b border-gray-300">总成本 (元)</th>
-                                    <th class="px-4 py-5 bg-gradient-to-r from-blue-100 to-indigo-100 text-center text-base font-semibold text-gray-800 border-b border-gray-300">备注</th>
-                                    <th class="px-4 py-5 bg-gradient-to-r from-blue-100 to-indigo-100 text-center text-base font-semibold text-gray-800 border-b border-gray-300">操作</th>
+                                    <th class="px-4 py-5 bg-gray-50 text-center text-base font-semibold text-gray-800 border-b border-gray-300">规格编码</th>
+                                    <th class="px-4 py-5 bg-gray-50 text-center text-base font-semibold text-gray-800 border-b border-gray-300">手动成本 (元)</th>
+                                    <th class="px-4 py-5 bg-gray-50 text-center text-base font-semibold text-gray-800 border-b border-gray-300">引用成本 (元)</th>
+                                    <th class="px-4 py-5 bg-gray-50 text-center text-base font-semibold text-gray-800 border-b border-gray-300">总成本 (元)</th>
+                                    <th class="px-4 py-5 bg-gray-50 text-center text-base font-semibold text-gray-800 border-b border-gray-300">备注</th>
+                                    <th class="px-4 py-5 bg-gray-50 text-center text-base font-semibold text-gray-800 border-b border-gray-300">操作</th>
                                 </tr>
                             </thead>
                         </table>
@@ -16787,7 +17432,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -16795,12 +17441,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -17220,7 +17877,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -17228,12 +17886,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -17508,7 +18177,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -17516,12 +18186,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -17916,7 +18597,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -17924,12 +18606,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -18324,7 +19017,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -18332,12 +19026,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -18732,7 +19437,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -18740,12 +19446,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -19140,7 +19857,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -19148,12 +19866,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -19251,7 +19980,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -19259,12 +19989,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -19664,7 +20405,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -19672,12 +20414,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -20076,7 +20829,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -20084,12 +20838,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -20665,7 +21430,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -20673,12 +21439,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -21088,7 +21865,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -21096,12 +21874,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -21505,7 +22294,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -21513,12 +22303,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -21915,7 +22716,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -21923,12 +22725,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -22341,7 +23154,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -22349,12 +23163,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -22962,7 +23787,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -22970,12 +23796,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -23376,7 +24213,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -23384,12 +24222,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -23793,7 +24642,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -23801,12 +24651,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -24213,33 +25074,41 @@ ${shopsMap[link.shopId]}
                             </div>
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 sticky-header">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        <input type="checkbox" id="select-all-purchases" onclick="toggleSelectAllPurchases()">
-                                    </th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">产品名称</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">数量</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">单位</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">单价 (¥)</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">总价 (¥)</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">待付金额</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">供应商</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">采购日期</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">编码</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody id="purchase-data-list" class="bg-white divide-y divide-gray-200">
-                                <!-- 采购数据将通过JavaScript动态添加 -->
-                            </tbody>
-                        </table>
+                    <div class="bg-white rounded-t-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <!-- 表头区域 - 无滚动条 -->
+                        <div class="overflow-x-hidden" id="purchase-table-header-wrapper">
+                            <table class="min-w-full" id="purchase-table-header" style="table-layout: fixed;">
+                                <thead class="bg-gray-50">
+                                    <tr style="height: 48px;">
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="vertical-align: middle;">
+                                            <input type="checkbox" id="select-all-purchases" onclick="toggleSelectAllPurchases()">
+                                        </th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="vertical-align: middle;">产品名称</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="vertical-align: middle;">数量</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="vertical-align: middle;">单位</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="vertical-align: middle;">单价 (¥)</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="vertical-align: middle;">总价 (¥)</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="vertical-align: middle;">待付金额</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="vertical-align: middle;">供应商</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="vertical-align: middle;">采购日期</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="vertical-align: middle;">编码</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="vertical-align: middle;">操作</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                        <!-- 表格内容区域 - 有滚动条 -->
+                        <div class="overflow-x-auto overflow-y-auto max-h-[calc(100vh-420px)]" id="purchase-table-body-wrapper" style="scrollbar-width: thin; scrollbar-color: #cbd5e1 #f1f5f9;">
+                            <table class="min-w-full" id="purchase-table-body" style="table-layout: fixed;">
+                                <tbody id="purchase-data-list" class="bg-white divide-y divide-gray-200">
+                                    <!-- 采购数据将通过JavaScript动态添加 -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     
                     <!-- 数据统计和分页 -->
-                    <div class="flex flex-col sm:flex-row justify-between items-center px-4 py-3 bg-gray-50 border-t border-gray-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-center px-4 py-3 bg-gray-50 border-t border-gray-200 rounded-b-xl">
                         <div class="text-sm text-gray-600 mb-3 sm:mb-0">
                             共 <span id="purchase-data-count" class="font-semibold text-gray-800">0</span> 条数据，
                             每页显示 <select id="purchase-page-size" class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
@@ -24374,7 +25243,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -24382,12 +25252,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -24696,7 +25577,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -24704,12 +25586,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -25160,7 +26053,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -25168,12 +26062,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -38332,15 +39237,11 @@ ${shopsMap[link.shopId]}
             console.log('Data saved successfully with saved data flag');
             
             // 自动更新关联的成本数据
-            // 检查是否在规格成本管理页面或有规格成本数据变化
-            const currentTab = document.querySelector('.tab-active');
-            if (currentTab && currentTab.getAttribute('data-tab') === 'sku-costs') {
-                console.log('检测到在规格成本管理页面保存数据，自动更新关联成本');
-                // 使用setTimeout确保数据完全保存后再更新
-                setTimeout(() => {
-                    updateLinkedCosts();
-                }, 100);
-            }
+            console.log('保存数据后自动更新关联成本');
+            // 使用setTimeout确保数据完全保存后再更新
+            setTimeout(() => {
+                updateLinkedCosts();
+            }, 100);
         }
         
         // 从本地存储加载数据
@@ -38791,7 +39692,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -38799,12 +39701,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -38951,7 +39864,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -38959,12 +39873,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -39139,7 +40064,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -39147,12 +40073,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -43460,7 +44397,8 @@ ${shopsMap[link.shopId]}
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -43468,12 +44406,23 @@ ${shopsMap[link.shopId]}
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -45921,7 +46870,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -45929,12 +46879,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -46460,7 +47421,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         /* 自定义滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         
         ::-webkit-scrollbar-track {
@@ -46468,12 +47430,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ccc;
+            border-radius: 3px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #999;
+        }
+        
+        /* 隐藏数字输入框的调节器 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* 导航栏按钮样式覆盖 */
@@ -46905,47 +47878,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 navLinks.forEach(navLink => {
                     navLink.classList.remove('bg-white', 'border-l-4', 'border-primary', 'text-gray-700');
                     
-                    // 对于隐私政策导航项，保持蓝色字体
-                    if (navLink.getAttribute('data-settings-nav') === 'privacy-policy') {
-                        navLink.classList.add('text-blue-600', 'hover:bg-white', 'hover:border-l-4', 'hover:border-primary');
-                        
-                        // 保持图标蓝色
-                        const icon = navLink.querySelector('i');
-                        if (icon) {
-                            icon.classList.remove('text-primary');
-                            icon.classList.add('text-blue-600');
-                        }
-                    } else {
-                        navLink.classList.add('text-gray-600', 'hover:bg-white', 'hover:border-l-4', 'hover:border-primary');
-                        
-                        // 重置图标颜色
-                        const icon = navLink.querySelector('i');
-                        if (icon) {
-                            icon.classList.remove('text-primary');
-                        }
+                    navLink.classList.add('text-gray-600', 'hover:bg-white', 'hover:border-l-4', 'hover:border-primary');
+                    
+                    // 重置图标颜色
+                    const icon = navLink.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('text-primary');
                     }
                 });
                 
                 // 设置当前活动链接样式
-                if (this.getAttribute('data-settings-nav') === 'privacy-policy') {
-                    this.classList.remove('text-blue-600', 'hover:bg-white', 'hover:border-l-4', 'hover:border-primary');
-                    this.classList.add('bg-white', 'border-l-4', 'border-primary', 'text-blue-600', 'rounded-lg');
-                    
-                    // 设置当前活动链接的图标颜色
-                    const activeIcon = this.querySelector('i');
-                    if (activeIcon) {
-                        activeIcon.classList.remove('text-blue-600');
-                        activeIcon.classList.add('text-primary');
-                    }
-                } else {
-                    this.classList.remove('text-gray-600', 'hover:bg-white', 'hover:border-l-4', 'hover:border-primary');
-                    this.classList.add('bg-white', 'border-l-4', 'border-primary', 'text-gray-700', 'rounded-lg');
-                    
-                    // 设置当前活动链接的图标颜色
-                    const activeIcon = this.querySelector('i');
-                    if (activeIcon) {
-                        activeIcon.classList.add('text-primary');
-                    }
+                this.classList.remove('text-gray-600', 'hover:bg-white', 'hover:border-l-4', 'hover:border-primary');
+                this.classList.add('bg-white', 'border-l-4', 'border-primary', 'text-gray-700', 'rounded-lg');
+                
+                // 设置当前活动链接的图标颜色
+                const activeIcon = this.querySelector('i');
+                if (activeIcon) {
+                    activeIcon.classList.add('text-primary');
                 }
             });
         });
@@ -47298,4 +48247,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- 授权验证脚本 -->
 <script src="license-check.js"></script>   
 
+
+    
     </body></html>
