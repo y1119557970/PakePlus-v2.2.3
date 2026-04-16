@@ -270,336 +270,8 @@
         }
     </style>
     <script>
-    // 产品图片上传相关功能
-    let currentProductImageFile = null;
-    let currentProductImageBase64 = null;
-
-    // 打开产品图片上传模态框
-    function openProductImageModal(productId) {
-        document.getElementById('current-product-id').value = productId;
-        const modal = document.getElementById('product-image-modal');
-        const modalContent = document.getElementById('product-image-modal-content');
-        
-        // 重置模态框状态
-        resetProductImageModal();
-        
-        // 检查是否已有图片
-        const existingImage = getProductImage(productId);
-        if (existingImage) {
-            showProductImagePreview(existingImage);
-        }
-        
-        // 显示模态框并添加动画
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            modal.classList.remove('bg-black/0', 'backdrop-blur-0');
-            modal.classList.add('bg-black/30', 'backdrop-blur-md');
-            modalContent.classList.remove('scale-95', 'opacity-0');
-            modalContent.classList.add('scale-100', 'opacity-100');
-        }, 10);
-    }
-
-    // 关闭产品图片上传模态框
-    function closeProductImageModal() {
-        const modal = document.getElementById('product-image-modal');
-        const modalContent = document.getElementById('product-image-modal-content');
-        
-        // 添加关闭动画
-        modal.classList.remove('bg-black/30', 'backdrop-blur-md');
-        modal.classList.add('bg-black/0', 'backdrop-blur-0');
-        modalContent.classList.remove('scale-100', 'opacity-100');
-        modalContent.classList.add('scale-95', 'opacity-0');
-        
-        // 动画结束后隐藏模态框
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            resetProductImageModal();
-        }, 300);
-    }
-
-    // 重置产品图片上传模态框
-    function resetProductImageModal() {
-        document.getElementById('product-image-input').value = '';
-        document.getElementById('product-image-upload-area').classList.remove('hidden');
-        document.getElementById('product-image-preview-container').classList.add('hidden');
-        currentProductImageFile = null;
-        currentProductImageBase64 = null;
-    }
-
-    // 显示产品图片预览
-    function showProductImagePreview(imageSrc) {
-        const preview = document.getElementById('product-image-preview');
-        preview.src = imageSrc;
-        document.getElementById('product-image-upload-area').classList.add('hidden');
-        document.getElementById('product-image-preview-container').classList.remove('hidden');
-    }
-
-    // 获取产品图片
-    function getProductImage(productId) {
-        const productImages = JSON.parse(localStorage.getItem('productImages') || '{}');
-        return productImages[productId] || null;
-    }
-
-    // 保存产品图片
-    function saveProductImage() {
-        const productId = document.getElementById('current-product-id').value;
-        if (!productId) return;
-
-        if (currentProductImageBase64) {
-            try {
-                // 保存到本地存储
-                const productImages = JSON.parse(localStorage.getItem('productImages') || '{}');
-                productImages[productId] = currentProductImageBase64;
-                localStorage.setItem('productImages', JSON.stringify(productImages));
-                console.log('Image saved for product:', productId);
-                
-                // 更新图标显示
-                updateProductIconWithImage(productId, currentProductImageBase64);
-                
-                // 显示成功提示
-                showToast('图片上传成功', 'success');
-            } catch (error) {
-                console.error('Error saving product image:', error);
-                showToast('图片保存失败，请重试', 'error');
-            }
-        }
-        
-        // 关闭模态框
-        closeProductImageModal();
-    }
-
-    // 更新产品图标为图片
-    function updateProductIconWithImage(productId, imageUrl) {
-        const iconElement = document.getElementById(`product-image-icon-${productId}`);
-        if (iconElement) {
-            console.log('Updating icon for product:', productId);
-            
-            // 移除原有样式和内容
-            iconElement.className = 'w-10 h-10 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity overflow-hidden rounded-lg';
-            iconElement.style.padding = '0';
-            iconElement.innerHTML = '';
-            
-            // 添加图片
-            const img = document.createElement('img');
-            img.src = imageUrl;
-            img.className = 'w-full h-full object-cover';
-            img.alt = '产品图片';
-            img.loading = 'lazy'; // 使用懒加载
-            
-            // 添加图片加载失败处理
-            img.onerror = function() {
-                console.error('Failed to load image for product:', productId);
-                // 如果图片加载失败，显示默认图标
-                restoreProductOriginalIcon(productId);
-            };
-            
-            // 添加图片加载成功处理
-            img.onload = function() {
-                console.log('Image loaded successfully for product:', productId);
-            };
-            
-            // 添加鼠标悬停放大预览效果
-            img.onmouseover = function(event) {
-                // 防止重复创建预览元素
-                if (img.previewElement) return;
-                
-                // 获取图标元素的位置和尺寸
-                const iconRect = iconElement.getBoundingClientRect();
-                
-                // 创建放大预览元素
-                const previewElement = document.createElement('div');
-                previewElement.className = 'absolute z-50 bg-white p-2 rounded-lg shadow-lg border border-gray-200';
-                
-                // 计算固定位置：在图标下方居中
-                const previewWidth = 300; // 增大预览框宽度
-                const previewHeight = 300; // 增大预览框高度
-                const leftPos = iconRect.left + (iconRect.width / 2) - (previewWidth / 2); // 计算居中位置
-                const topPos = iconRect.bottom + 10; // 图标下方10px
-                
-                previewElement.style.left = `${leftPos}px`;
-                previewElement.style.top = `${topPos}px`;
-                previewElement.style.width = `${previewWidth}px`;
-                previewElement.style.height = `${previewHeight}px`;
-                previewElement.style.position = 'fixed';
-                previewElement.style.pointerEvents = 'none'; // 防止影响鼠标事件
-                previewElement.style.transition = 'opacity 0.2s ease-in-out'; // 添加淡入效果
-                previewElement.style.opacity = '0'; // 初始透明
-                
-                // 确保预览框在可视区域内
-                const previewRect = {
-                    width: previewWidth,
-                    height: previewHeight
-                };
-                
-                // 检查并调整水平位置
-                if (leftPos < 10) {
-                    previewElement.style.left = '10px';
-                } else if (leftPos + previewRect.width > window.innerWidth - 10) {
-                    previewElement.style.left = `${window.innerWidth - previewRect.width - 10}px`;
-                }
-                
-                // 检查并调整垂直位置
-                if (topPos + previewRect.height > window.innerHeight - 10) {
-                    previewElement.style.top = `${iconRect.top - previewRect.height - 10}px`;
-                }
-                
-                // 创建预览图片
-                const previewImg = document.createElement('img');
-                previewImg.src = imageUrl;
-                previewImg.className = 'w-full h-full object-contain';
-                previewImg.alt = '产品图片预览';
-                
-                // 添加到预览元素
-                previewElement.appendChild(previewImg);
-                
-                // 添加到文档
-                document.body.appendChild(previewElement);
-                
-                // 淡入效果
-                setTimeout(() => {
-                    previewElement.style.opacity = '1';
-                }, 50);
-                
-                // 存储预览元素引用
-                img.previewElement = previewElement;
-            };
-            
-            // 移除鼠标移动时更新位置的代码，保持预览框固定
-            img.onmousemove = function(event) {
-                // 不再更新位置，保持预览框固定
-            };
-            
-            // 鼠标离开时移除预览
-            img.onmouseout = function() {
-                if (img.previewElement && document.body.contains(img.previewElement)) {
-                    document.body.removeChild(img.previewElement);
-                    img.previewElement = null;
-                }
-            };
-            
-            iconElement.appendChild(img);
-            
-            // 确保点击事件仍然有效
-            iconElement.onclick = function() {
-                openProductImageModal(productId);
-            };
-        }
-    }
-
-    // 删除产品图片
-    function deleteProductImage() {
-        const productId = document.getElementById('current-product-id').value;
-        if (!productId) return;
-        
-        // 从本地存储中删除
-        const productImages = JSON.parse(localStorage.getItem('productImages') || '{}');
-        delete productImages[productId];
-        localStorage.setItem('productImages', JSON.stringify(productImages));
-        
-        // 重置模态框
-        resetProductImageModal();
-        
-        // 恢复原始图标
-        restoreProductOriginalIcon(productId);
-        
-        // 显示成功提示
-        showToast('图片已删除', 'success');
-    }
-
-    // 恢复产品原始图标
-    function restoreProductOriginalIcon(productId) {
-        const iconElement = document.getElementById(`product-image-icon-${productId}`);
-        if (iconElement) {
-            // 重置元素样式，确保移除之前图片相关的样式
-            iconElement.className = 'w-10 h-10 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity overflow-hidden rounded-lg flex items-center justify-center bg-gray-100';
-            iconElement.style.padding = '';
-            
-            // 获取产品类型以确定正确的图标
-            let icon = 'fa-puzzle-piece'; // 默认图标
-            
-            // 这里需要根据实际数据结构获取产品类型
-            // 假设我们有一个全局变量或函数可以获取产品信息
-            const product = getProductById(productId);
-            if (product && product.type) {
-                switch(product.type) {
-                    case 'device':
-                        icon = 'fa-mobile';
-                        break;
-                    case 'part':
-                        icon = 'fa-cube';
-                        break;
-                    case 'platform':
-                        icon = 'fa-handshake-o';
-                        break;
-                    case 'accessory':
-                        icon = 'fa-puzzle-piece';
-                        break;
-                    default:
-                        icon = 'fa-puzzle-piece';
-                }
-            }
-            
-            // 清空并恢复原始图标
-            iconElement.innerHTML = `<i class="fa ${icon} text-xl text-gray-500"></i>`;
-            
-            // 确保点击事件仍然有效
-            iconElement.onclick = function() {
-                openProductImageModal(productId);
-            };
-        }
-    }
-
-    // 获取产品信息（需要根据实际数据结构实现）
-    function getProductById(productId) {
-        // 这里应该根据实际的数据结构来实现
-        // 假设我们有一个全局变量products包含所有产品信息
-        if (typeof products !== 'undefined' && Array.isArray(products)) {
-            return products.find(p => p.id === productId) || null;
-        }
-        return null;
-    }
-
-    // 初始化产品图片相关事件
+    // 绑定删除笔记模态框事件
     document.addEventListener('DOMContentLoaded', function() {
-        const uploadArea = document.getElementById('product-image-upload-area');
-        const fileInput = document.getElementById('product-image-input');
-        const deleteBtn = document.getElementById('delete-product-image-btn');
-        
-        if (uploadArea && fileInput) {
-            // 点击上传区域触发文件选择
-            uploadArea.addEventListener('click', function() {
-                fileInput.click();
-            });
-            
-            // 文件选择变化事件
-            fileInput.addEventListener('change', function(event) {
-                handleFileSelect(event);
-            });
-            
-            // 拖拽上传功能
-            uploadArea.addEventListener('dragover', function(event) {
-                event.preventDefault();
-                uploadArea.classList.add('border-primary', 'bg-primary/5');
-            });
-            
-            uploadArea.addEventListener('dragleave', function() {
-                uploadArea.classList.remove('border-primary', 'bg-primary/5');
-            });
-            
-            uploadArea.addEventListener('drop', function(event) {
-                event.preventDefault();
-                uploadArea.classList.remove('border-primary', 'bg-primary/5');
-                
-                if (event.dataTransfer.files.length > 0) {
-                    handleFileSelect({ target: { files: event.dataTransfer.files } });
-                }
-            });
-        }
-        
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', deleteProductImage);
-        }
-        
         // 绑定删除笔记模态框事件
         const deleteNoteModal = document.getElementById('delete-note-confirm-modal');
         if (deleteNoteModal) {
@@ -641,22 +313,6 @@
                     deleteNoteModal.classList.add('hidden');
                 });
             }
-        }
-        
-        // 初始化已保存的产品图片
-        initProductImages();
-    });
-    
-    // 页面加载完成后再次尝试初始化产品图片
-    window.addEventListener('load', function() {
-        // 延迟一点执行，确保DOM完全加载
-        setTimeout(initProductImages, 300);
-    });
-    
-    // 监听页面可见性变化，确保图片正确显示
-    document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) {
-            setTimeout(initProductImages, 100);
         }
     });
 
@@ -744,129 +400,7 @@
         input.dispatchEvent(event);
     }
 
-    // 处理文件选择
-    function handleFileSelect(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        // 检查文件类型
-        if (!file.type.match('image.*')) {
-            showToast('请选择图片文件', 'error');
-            return;
-        }
-        
-        // 检查文件大小（3MB限制）
-        if (file.size > 3 * 1024 * 1024) {
-            showToast('图片大小不能超过3MB', 'error');
-            return;
-        }
-        
-        // 创建图片对象来检查尺寸
-        const img = new Image();
-        img.onload = function() {
-            // 检查图片尺寸（最大1500x1500像素）
-            if (img.width > 1500 || img.height > 1500) {
-                showToast('图片尺寸不能超过1500x1500像素', 'error');
-                return;
-            }
-            
-            // 验证通过，读取文件为Base64
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64String = e.target.result;
-                
-                // 压缩图片（如果需要）
-                compressImage(base64String, function(compressedBase64) {
-                    currentProductImageFile = file;
-                    currentProductImageBase64 = compressedBase64;
-                    showProductImagePreview(compressedBase64);
-                });
-            };
-            
-            reader.onerror = function() {
-                showToast('图片读取失败，请重试', 'error');
-            };
-            
-            reader.readAsDataURL(file);
-        };
-        
-        img.onerror = function() {
-            showToast('图片加载失败，请重试', 'error');
-        };
-        
-        img.src = URL.createObjectURL(file);
-    }
 
-    // 压缩图片函数
-    function compressImage(base64String, callback) {
-        const img = new Image();
-        img.onload = function() {
-            // 设置压缩后的最大宽度和高度
-            const maxWidth = 800;
-            const maxHeight = 800;
-            
-            let width = img.width;
-            let height = img.height;
-            
-            // 计算压缩比例
-            if (width > maxWidth || height > maxHeight) {
-                const ratio = Math.min(maxWidth / width, maxHeight / height);
-                width *= ratio;
-                height *= ratio;
-            }
-            
-            // 创建Canvas进行压缩
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            
-            // 转换为Base64，质量为0.8
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
-            
-            // 如果压缩后大小仍然超过1MB，进一步压缩
-            if (compressedBase64.length > 1024 * 1024) {
-                const furtherCompressed = canvas.toDataURL('image/jpeg', 0.6);
-                callback(furtherCompressed);
-            } else {
-                callback(compressedBase64);
-            }
-        };
-        
-        img.onerror = function() {
-            // 如果压缩失败，使用原图
-            callback(base64String);
-        };
-        
-        img.src = base64String;
-    }
-
-    // 初始化已保存的产品图片
-    function initProductImages() {
-        // 确保localStorage可用
-        if (typeof Storage === 'undefined') {
-            console.error('localStorage is not supported in this browser');
-            return;
-        }
-        
-        try {
-            const productImages = JSON.parse(localStorage.getItem('productImages') || '{}');
-            console.log('Initializing product images:', Object.keys(productImages).length, 'images found');
-            
-            // 遍历所有保存的图片
-            for (const productId in productImages) {
-                const imageUrl = productImages[productId];
-                if (imageUrl) {
-                    console.log('Loading image for product:', productId);
-                    updateProductIconWithImage(productId, imageUrl);
-                }
-            }
-        } catch (error) {
-            console.error('Error initializing product images:', error);
-        }
-    }
     </script>
 
     <!-- Custom Styles -->
@@ -1775,6 +1309,15 @@
             window.showFeedbackModal = showFeedbackModal;
             window.closeFeedbackModal = closeFeedbackModal;
             
+            // 存储空间管理函数
+            window.calculateStorageUsage = calculateStorageUsage;
+            window.calculateCategoryStorage = calculateCategoryStorage;
+            window.updateStorageUI = updateStorageUI;
+            window.refreshStorageInfo = refreshStorageInfo;
+            window.openClearStorageModal = openClearStorageModal;
+            window.closeClearStorageModal = closeClearStorageModal;
+            window.confirmClearStorage = confirmClearStorage;
+            
             // 页面加载时检查协议状态
             console.log('页面加载中...');
             
@@ -1786,12 +1329,934 @@
                 document.addEventListener('DOMContentLoaded', function() {
                     console.log('DOM内容加载完成');
                     checkAgreementStatus();
+                    // 初始化存储空间信息
+                    setTimeout(refreshStorageInfo, 1000);
                 });
             } else {
                 console.log('DOM内容已加载，立即检查协议状态');
                 checkAgreementStatus();
+                // 初始化存储空间信息
+                setTimeout(refreshStorageInfo, 1000);
             }
         })();
+        
+        // 存储空间管理函数
+        function calculateStorageUsage() {
+            let totalSize = 0;
+            for (let key in localStorage) {
+                if (localStorage.hasOwnProperty(key)) {
+                    totalSize += localStorage[key].length;
+                }
+            }
+            return totalSize;
+        }
+        
+        function calculateCategoryStorage() {
+            const categories = {
+                calculation: 0, // 数据计算区
+                cost: 0, // 成本管理
+                spec: 0, // 规格成本
+                shop: 0, // 店铺管理
+                purchase: 0, // 采购管理
+                pricing: 0, // 新品定价
+                tasks: 0, // 待办笔记
+                user: 0, // 用户数据
+                config: 0 // 配置数据
+            };
+            
+            // 数据计算区
+            const savedData = localStorage.getItem('savedData');
+            const recycleBin = localStorage.getItem('recycleBin');
+            if (savedData) categories.calculation += savedData.length;
+            if (recycleBin) categories.calculation += recycleBin.length;
+            
+            // 成本管理
+            const expressCosts = localStorage.getItem('expressCosts');
+            const platformCosts = localStorage.getItem('platformCosts');
+            const packagingCosts = localStorage.getItem('packagingCosts');
+            const accessoryCosts = localStorage.getItem('accessoryCosts');
+            const costCategories = localStorage.getItem('costCategories');
+            const costRecords = localStorage.getItem('costRecords');
+            if (expressCosts) categories.cost += expressCosts.length;
+            if (platformCosts) categories.cost += platformCosts.length;
+            if (packagingCosts) categories.cost += packagingCosts.length;
+            if (accessoryCosts) categories.cost += accessoryCosts.length;
+            if (costCategories) categories.cost += costCategories.length;
+            if (costRecords) categories.cost += costRecords.length;
+            
+            // 店铺管理
+            const shops = localStorage.getItem('shops');
+            const platforms = localStorage.getItem('platforms');
+            if (platforms) categories.shop += platforms.length;
+            
+            // 采购管理
+            const detailForms = localStorage.getItem('detailForms');
+            const purchaseData = localStorage.getItem('purchaseData');
+            if (detailForms) categories.purchase += detailForms.length;
+            if (purchaseData) categories.purchase += purchaseData.length;
+            
+            // 新品定价
+            const pricingData = localStorage.getItem('pricingData');
+            if (pricingData) {
+                categories.pricing += pricingData.length;
+            }
+            
+            // 规格成本
+            const skuCosts = localStorage.getItem('skuCosts');
+            if (skuCosts) {
+                categories.spec += skuCosts.length;
+            }
+            
+            // 从shops中提取店铺、采购和付款数据
+            if (shops) {
+                try {
+                    const data = JSON.parse(shops);
+                    // 店铺数据大小
+                    categories.shop += JSON.stringify(data.map(shop => ({
+                        id: shop.id,
+                        name: shop.name,
+                        platform: shop.platform,
+                        note: shop.note,
+                        createdAt: shop.createdAt
+                    }))).length;
+                    
+                    // 采购和付款数据大小
+                    data.forEach(shop => {
+                        if (shop.purchases) categories.purchase += JSON.stringify(shop.purchases).length;
+                        if (shop.payments) categories.purchase += JSON.stringify(shop.payments).length;
+                    });
+                } catch (e) {
+                    console.error('解析shops失败:', e);
+                }
+            }
+            
+            // 待办笔记
+            const tasks = localStorage.getItem('tasks');
+            const notes = localStorage.getItem('notes');
+            const customLists = localStorage.getItem('customLists'); // 待办列表
+            const noteLists = localStorage.getItem('noteLists'); // 笔记列表
+            if (tasks) categories.tasks += tasks.length;
+            if (notes) categories.tasks += notes.length;
+            if (customLists) categories.tasks += customLists.length;
+            if (noteLists) categories.tasks += noteLists.length;
+            
+            // 用户数据
+            const users = localStorage.getItem('users');
+            const currentUser = localStorage.getItem('currentUser');
+            const loginHistory = localStorage.getItem('loginHistory');
+            const todayLogin = localStorage.getItem('todayLogin');
+            const userAgreed = localStorage.getItem('userAgreed');
+            if (users) categories.user += users.length;
+            if (currentUser) categories.user += currentUser.length;
+            if (loginHistory) categories.user += loginHistory.length;
+            if (todayLogin) categories.user += todayLogin.length;
+            if (userAgreed) categories.user += userAgreed.length;
+            
+            // 配置数据
+            const breakEvenAutoCalculation = localStorage.getItem('breakEvenAutoCalculation');
+            const sellingPriceLocked = localStorage.getItem('sellingPriceLocked');
+            if (breakEvenAutoCalculation) categories.config += breakEvenAutoCalculation.length;
+            if (sellingPriceLocked) categories.config += sellingPriceLocked.length;
+            
+            return categories;
+        }
+        
+        function updateStorageUI() {
+            const totalSize = calculateStorageUsage();
+            const categorySizes = calculateCategoryStorage();
+            
+            const totalMB = 5; // localStorage总容量约为5MB
+            const usedMB = (totalSize / (1024 * 1024)).toFixed(2);
+            const availableMB = (totalMB - usedMB).toFixed(2);
+            const percentage = Math.min((usedMB / totalMB) * 100, 100);
+            
+            // 更新总存储信息
+            document.getElementById('used-storage').textContent = usedMB + ' MB';
+            document.getElementById('available-storage').textContent = availableMB + ' MB';
+            document.getElementById('storage-percentage').textContent = Math.round(percentage) + '%';
+            document.getElementById('storage-progress').style.width = percentage + '%';
+            
+            // 更新各分类存储信息
+            const categories = ['calculation', 'cost', 'spec', 'shop', 'purchase', 'pricing', 'tasks', 'user', 'config'];
+            const categoryNames = ['storage-calculation', 'storage-cost', 'storage-spec', 'storage-shop', 'storage-purchase', 'storage-pricing', 'storage-tasks', 'storage-user', 'storage-config'];
+            
+            categories.forEach((category, index) => {
+                const size = categorySizes[category];
+                const sizeKB = (size / 1024).toFixed(2);
+                let categoryPercentage = 0;
+                
+                if (totalSize > 0 && size > 0) {
+                    categoryPercentage = Math.min((size / totalSize) * 100, 100);
+                }
+                
+                document.getElementById(categoryNames[index]).textContent = sizeKB + ' KB';
+                
+                // 更新进度条
+                const progressBar = document.getElementById(categoryNames[index]).parentElement.nextElementSibling.querySelector('div');
+                if (progressBar) {
+                    progressBar.style.width = categoryPercentage + '%';
+                    // 确保进度条有正确的颜色
+                    if (categoryPercentage > 0) {
+                        progressBar.style.backgroundColor = getCategoryColor(category);
+                    } else {
+                        progressBar.style.backgroundColor = '#e5e7eb'; // 灰色，表示无数据
+                    }
+                }
+            });
+        }
+        
+        function getCategoryColor(category) {
+            const colors = {
+                calculation: '#3b82f6', // 蓝色
+                cost: '#10b981', // 绿色
+                spec: '#8b5cf6', // 紫色
+                shop: '#f97316', // 橙色
+                purchase: '#ef4444', // 红色
+                pricing: '#f59e0b', // 黄色
+                tasks: '#6366f1', // 靛蓝色
+                user: '#14b8a6', // 青色
+                config: '#6b7280' // 灰色
+            };
+            return colors[category] || '#6b7280';
+        }
+        
+        function refreshStorageInfo() {
+            updateStorageUI();
+        }
+        
+        // 数据备份模态框函数
+        function openBackupStorageModal() {
+            document.getElementById('backup-storage-modal').classList.remove('hidden');
+        }
+
+        function closeBackupStorageModal() {
+            document.getElementById('backup-storage-modal').classList.add('hidden');
+        }
+
+        function toggleAllBackupCategories() {
+            const selectAllCheckbox = document.getElementById('backup-select-all');
+            const categoryCheckboxes = document.querySelectorAll('.backup-category-checkbox');
+            categoryCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+        }
+
+        function performBackup() {
+            const categories = {
+                calculation: document.getElementById('backup-calculation').checked,
+                cost: document.getElementById('backup-cost').checked,
+                spec: document.getElementById('backup-spec').checked,
+                shop: document.getElementById('backup-shop').checked,
+                purchase: document.getElementById('backup-purchase').checked,
+                pricing: document.getElementById('backup-pricing').checked,
+                tasks: document.getElementById('backup-tasks').checked,
+                user: document.getElementById('backup-user').checked,
+                config: document.getElementById('backup-config').checked
+            };
+            
+            try {
+                // 收集选择的数据
+                const allData = {};
+                
+                // 数据计算区
+                if (categories.calculation) {
+                    allData.savedData = localStorage.getItem('savedData');
+                    allData.recycleBin = localStorage.getItem('recycleBin');
+                }
+                
+                // 成本管理
+                if (categories.cost) {
+                    allData.expressCosts = localStorage.getItem('expressCosts');
+                    allData.platformCosts = localStorage.getItem('platformCosts');
+                    allData.packagingCosts = localStorage.getItem('packagingCosts');
+                    allData.accessoryCosts = localStorage.getItem('accessoryCosts');
+                    allData.costCategories = localStorage.getItem('costCategories');
+                    allData.costRecords = localStorage.getItem('costRecords');
+                }
+                
+                // 规格成本
+                if (categories.spec) {
+                    allData.skuCosts = localStorage.getItem('skuCosts');
+                }
+                
+                // 店铺管理
+                if (categories.shop) {
+                    allData.shops = localStorage.getItem('shops');
+                    allData.platforms = localStorage.getItem('platforms');
+                }
+                
+                // 采购管理
+                if (categories.purchase) {
+                    allData.detailForms = localStorage.getItem('detailForms');
+                    allData.purchaseData = localStorage.getItem('purchaseData');
+                }
+                
+                // 新品定价
+                if (categories.pricing) {
+                    allData.pricingData = localStorage.getItem('pricingData');
+                }
+                
+                // 待办笔记
+                if (categories.tasks) {
+                    allData.tasks = localStorage.getItem('tasks');
+                    allData.notes = localStorage.getItem('notes');
+                    allData.customLists = localStorage.getItem('customLists');
+                    allData.noteLists = localStorage.getItem('noteLists');
+                }
+                
+                // 用户数据
+                if (categories.user) {
+                    allData.users = localStorage.getItem('users');
+                    allData.currentUser = localStorage.getItem('currentUser');
+                    allData.loginHistory = localStorage.getItem('loginHistory');
+                    allData.todayLogin = localStorage.getItem('todayLogin');
+                    allData.userAgreed = localStorage.getItem('userAgreed');
+                }
+                
+                // 配置数据
+                if (categories.config) {
+                    allData.breakEvenAutoCalculation = localStorage.getItem('breakEvenAutoCalculation');
+                    allData.sellingPriceLocked = localStorage.getItem('sellingPriceLocked');
+                }
+                
+                // 创建JSON文件并下载
+                const dataString = JSON.stringify(allData, null, 2);
+                const blob = new Blob([dataString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `xiu-app-backup-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                closeBackupStorageModal();
+                showNotification('备份成功', 'success');
+            } catch (error) {
+                console.error('备份失败:', error);
+                showNotification('备份失败，请稍后重试', 'error');
+            }
+        }
+        
+        // 清理存储空间模态框函数
+        function openClearStorageModal() {
+            document.getElementById('clear-storage-modal').classList.remove('hidden');
+        }
+        
+        function closeClearStorageModal() {
+            document.getElementById('clear-storage-modal').classList.add('hidden');
+        }
+        
+        function showClearConfirmation() {
+            document.getElementById('clear-confirmation-modal').classList.remove('hidden');
+            
+            // 添加6秒冷却时间
+            const confirmBtn = document.getElementById('final-confirm-clear-btn');
+            let countdown = 6;
+            
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = `确认清理 (${countdown}s)`;
+            // 添加灰色样式
+            confirmBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+            confirmBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+            
+            const timer = setInterval(() => {
+                countdown--;
+                confirmBtn.textContent = `确认清理 (${countdown}s)`;
+                
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = '确认清理';
+                    // 恢复红色样式
+                    confirmBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                    confirmBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+                }
+            }, 1000);
+        }
+        
+        function closeClearConfirmationModal() {
+            document.getElementById('clear-confirmation-modal').classList.add('hidden');
+        }
+        
+        // 显示通知函数
+        function showNotification(message, type = 'info') {
+            // 创建通知元素
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 max-w-md transition-all duration-300 transform translate-y-0 opacity-100`;
+            
+            // 根据类型设置样式
+            switch (type) {
+                case 'success':
+                    notification.className += ' bg-green-500 text-white';
+                    break;
+                case 'error':
+                    notification.className += ' bg-red-500 text-white';
+                    break;
+                case 'warning':
+                    notification.className += ' bg-yellow-500 text-white';
+                    break;
+                default:
+                    notification.className += ' bg-blue-500 text-white';
+            }
+            
+            // 设置通知内容
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fa ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'} mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            // 添加到页面
+            document.body.appendChild(notification);
+            
+            // 3秒后自动消失
+            setTimeout(() => {
+                notification.classList.add('translate-y-[-20px]', 'opacity-0');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+        
+        // 数据备份函数
+        function exportData() {
+            try {
+                // 收集所有数据
+                const allData = {};
+                
+                // 数据计算区 - 直接获取压缩后的数据
+                allData.savedData = localStorage.getItem('savedData');
+                allData.recycleBin = localStorage.getItem('recycleBin');
+                
+                // 成本管理
+                allData.expressCosts = localStorage.getItem('expressCosts');
+                allData.platformCosts = localStorage.getItem('platformCosts');
+                allData.packagingCosts = localStorage.getItem('packagingCosts');
+                allData.accessoryCosts = localStorage.getItem('accessoryCosts');
+                allData.costCategories = localStorage.getItem('costCategories');
+                allData.costRecords = localStorage.getItem('costRecords');
+                
+                // 规格成本
+                allData.skuCosts = localStorage.getItem('skuCosts');
+                
+                // 店铺管理
+                allData.shops = localStorage.getItem('shops');
+                allData.platforms = localStorage.getItem('platforms');
+                
+                // 采购管理
+                allData.detailForms = localStorage.getItem('detailForms');
+                allData.purchaseData = localStorage.getItem('purchaseData');
+                
+                // 新品定价
+                allData.pricingData = localStorage.getItem('pricingData');
+                
+                // 待办笔记
+                allData.tasks = localStorage.getItem('tasks');
+                allData.notes = localStorage.getItem('notes');
+                allData.customLists = localStorage.getItem('customLists'); // 待办列表
+                allData.noteLists = localStorage.getItem('noteLists'); // 笔记列表
+                
+                // 用户数据
+                allData.users = localStorage.getItem('users');
+                allData.currentUser = localStorage.getItem('currentUser');
+                allData.loginHistory = localStorage.getItem('loginHistory');
+                allData.todayLogin = localStorage.getItem('todayLogin');
+                allData.userAgreed = localStorage.getItem('userAgreed');
+                
+                // 配置数据
+                allData.breakEvenAutoCalculation = localStorage.getItem('breakEvenAutoCalculation');
+                allData.sellingPriceLocked = localStorage.getItem('sellingPriceLocked');
+                
+                // 创建备份文件
+                const backupData = JSON.stringify(allData, null, 2);
+                const blob = new Blob([backupData], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                // 创建下载链接
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `xiu-app-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                // 释放URL对象
+                URL.revokeObjectURL(url);
+                
+                showNotification('数据备份成功', 'success');
+            } catch (error) {
+                console.error('数据备份失败:', error);
+                showNotification('数据备份失败', 'error');
+            }
+        }
+        
+        // 数据导入函数
+        function importData() {
+            // 创建文件输入元素
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const backupData = JSON.parse(e.target.result);
+                        
+                        // 导入所有数据
+                        for (const key in backupData) {
+                            if (backupData[key] !== null) {
+                                localStorage.setItem(key, backupData[key]);
+                            }
+                        }
+                        
+                        // 刷新存储信息
+                        refreshStorageInfo();
+
+                        // 更新内存中的数据变量并重新渲染
+
+                        // 成本管理 - 更新内存中的成本数据
+                        if (window.costRecords) {
+                            const expressCosts = localStorage.getItem('expressCosts');
+                            const platformCosts = localStorage.getItem('platformCosts');
+                            const packagingCosts = localStorage.getItem('packagingCosts');
+                            const accessoryCosts = localStorage.getItem('accessoryCosts');
+                            if (expressCosts) window.costRecords.express = JSON.parse(expressCosts);
+                            if (platformCosts) window.costRecords.platform = JSON.parse(platformCosts);
+                            if (packagingCosts) window.costRecords.packaging = JSON.parse(packagingCosts);
+                            if (accessoryCosts) window.costRecords.accessory = JSON.parse(accessoryCosts);
+                            if (typeof renderCostSection === 'function') {
+                                renderCostSection('express-costs', window.costRecords.express, '快递成本');
+                                renderCostSection('packaging-costs', window.costRecords.packaging, '包装成本');
+                                renderCostSection('platform-costs', window.costRecords.platform, '管理成本');
+                                renderCostSection('accessory-costs', window.costRecords.accessory, '产品成本');
+                            }
+                        }
+                        // 成本分类管理 - 更新内存中的成本分类数据
+                        const costCategoriesData = localStorage.getItem('costCategories');
+                        if (typeof costCategories !== 'undefined' && costCategoriesData) {
+                            costCategories = JSON.parse(costCategoriesData);
+                        }
+                        if (window.costCategories && costCategoriesData) {
+                            window.costCategories = JSON.parse(costCategoriesData);
+                        }
+
+                        // 规格成本 - 更新内存中的规格成本数据
+                        const skuCostsData = localStorage.getItem('skuCosts');
+                        if (typeof skuCosts !== 'undefined' && skuCostsData) {
+                            skuCosts = JSON.parse(skuCostsData);
+                        }
+                        if (typeof renderSkuCosts === 'function') {
+                            renderSkuCosts();
+                        }
+
+                        // 店铺管理 - 更新内存中的店铺数据
+                        const shopsData = localStorage.getItem('shops');
+                        if (typeof shops !== 'undefined' && shopsData) {
+                            shops = JSON.parse(shopsData);
+                        }
+                        if (typeof renderShops === 'function') {
+                            renderShops();
+                        }
+
+                        // 采购管理 - 更新内存中的采购数据
+                        const purchaseDataLocal = localStorage.getItem('purchaseData');
+                        if (typeof purchaseData !== 'undefined' && purchaseDataLocal) {
+                            purchaseData = JSON.parse(purchaseDataLocal);
+                        }
+                        if (typeof renderPurchaseData === 'function') {
+                            renderPurchaseData();
+                        }
+                        if (typeof renderPaymentRecords === 'function') {
+                            renderPaymentRecords();
+                        }
+                        if (typeof renderSuppliers === 'function') {
+                            renderSuppliers();
+                        }
+                        // 采购管理中的规格明细表单 - 更新内存中的明细表单数据
+                        const detailFormsData = localStorage.getItem('detailForms');
+                        if (window.detailFormsData && detailFormsData) {
+                            window.detailFormsData = JSON.parse(detailFormsData);
+                        }
+                        if (typeof renderDetailForms === 'function') {
+                            renderDetailForms();
+                        }
+
+                        // 新品定价 - 更新内存中的定价数据
+                        if (typeof loadPricingData === 'function') {
+                            loadPricingData();
+                        }
+                        if (typeof renderPricingCategoriesList === 'function') {
+                            renderPricingCategoriesList();
+                        }
+
+                        // 待办笔记 - 更新内存中的待办笔记数据
+                        const tasksData = localStorage.getItem('tasks');
+                        const notesData = localStorage.getItem('notes');
+                        const customListsData = localStorage.getItem('customLists');
+                        const noteListsData = localStorage.getItem('noteLists');
+                        if (typeof tasks !== 'undefined' && tasksData) {
+                            tasks = JSON.parse(tasksData);
+                        }
+                        if (typeof notes !== 'undefined' && notesData) {
+                            notes = JSON.parse(notesData);
+                        }
+                        if (typeof customLists !== 'undefined' && customListsData) {
+                            customLists = JSON.parse(customListsData);
+                        }
+                        if (typeof noteLists !== 'undefined' && noteListsData) {
+                            noteLists = JSON.parse(noteListsData);
+                        }
+                        if (typeof loadTasks === 'function') {
+                            loadTasks();
+                        }
+                        if (typeof loadNotes === 'function') {
+                            loadNotes();
+                        }
+                        if (typeof renderTasks === 'function') {
+                            renderTasks();
+                        }
+                        if (typeof renderNoteLists === 'function') {
+                            renderNoteLists();
+                        }
+
+                        // 数据计算区 - 更新内存中的数据计算区数据
+                        const savedDataLocal = localStorage.getItem('savedData');
+                        const recycleBinLocal = localStorage.getItem('recycleBin');
+                        if (typeof savedData !== 'undefined' && savedDataLocal) {
+                            // 尝试使用与数据中心相同的方法加载数据
+                            try {
+                                // 尝试使用标准的decompress方法
+                                let decompressedData = LZString.decompress(savedDataLocal);
+                                // 如果失败，尝试使用其他方法
+                                if (!decompressedData) {
+                                    decompressedData = LZString.decompressFromUTF16(savedDataLocal);
+                                }
+                                if (decompressedData) {
+                                    savedData = JSON.parse(decompressedData);
+                                } else {
+                                    // 尝试直接解析（可能是未压缩的数据）
+                                    savedData = JSON.parse(savedDataLocal);
+                                }
+                            } catch (parseError) {
+                                console.error('解析savedData失败:', parseError);
+                                savedData = [];
+                            }
+                        }
+                        if (typeof recycleBin !== 'undefined' && recycleBinLocal) {
+                            recycleBin = JSON.parse(recycleBinLocal);
+                        }
+                        if (typeof filteredSavedData !== 'undefined' && savedData) {
+                            filteredSavedData = [...savedData];
+                        }
+                        // 初始化分页相关变量
+                        if (typeof currentPage !== 'undefined') {
+                            currentPage = 1;
+                        }
+                        if (typeof itemsPerPage !== 'undefined') {
+                            itemsPerPage = 10;
+                        }
+                        // 重新渲染数据计算区数据
+                        if (typeof renderSavedData === 'function') {
+                            renderSavedData();
+                        } else if (typeof loadSavedData === 'function') {
+                            loadSavedData();
+                        }
+
+                        // 用户数据 - 通常需要重新登录，这里不处理
+
+                        // 配置数据 - 重新加载配置
+                        if (typeof loadConfig === 'function') {
+                            loadConfig();
+                        }
+                        
+                        showNotification('数据导入成功', 'success');
+                    } catch (error) {
+                        console.error('数据导入失败:', error);
+                        showNotification('数据导入失败，请确保文件格式正确', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+        
+        function performClearStorage() {
+            const categories = {
+                calculation: document.getElementById('clear-calculation').checked,
+                cost: document.getElementById('clear-cost').checked,
+                spec: document.getElementById('clear-spec').checked,
+                shop: document.getElementById('clear-shop').checked,
+                purchase: document.getElementById('clear-purchase').checked,
+                pricing: document.getElementById('clear-pricing').checked,
+                tasks: document.getElementById('clear-tasks').checked,
+                user: document.getElementById('clear-user').checked,
+                config: document.getElementById('clear-config').checked
+            };
+            
+            // 清理选中的数据
+            let clearedItems = 0;
+            
+            // 数据计算区
+            if (categories.calculation) {
+                localStorage.removeItem('savedData');
+                localStorage.removeItem('recycleBin');
+                // 更新内存中的数据
+                if (typeof savedData !== 'undefined') {
+                    savedData = [];
+                }
+                if (typeof recycleBin !== 'undefined') {
+                    recycleBin = [];
+                }
+                if (typeof filteredSavedData !== 'undefined') {
+                    filteredSavedData = [];
+                }
+                // 重新渲染数据计算区
+                if (typeof renderSavedData === 'function') {
+                    renderSavedData();
+                }
+                clearedItems += 2;
+            }
+            
+            // 成本管理
+            if (categories.cost) {
+                localStorage.removeItem('expressCosts');
+                localStorage.removeItem('platformCosts');
+                localStorage.removeItem('packagingCosts');
+                localStorage.removeItem('accessoryCosts');
+                localStorage.removeItem('costCategories');
+                localStorage.removeItem('costRecords'); // 清理costRecords数据
+                // 同时清理内存中的costRecords对象
+                if (window.costRecords) {
+                    window.costRecords.express = [];
+                    window.costRecords.platform = [];
+                    window.costRecords.packaging = [];
+                    window.costRecords.accessory = [];
+                    // 重新渲染成本管理页面
+                    if (typeof renderCostSection === 'function') {
+                        renderCostSection('express-costs', window.costRecords.express, '快递成本');
+                        renderCostSection('packaging-costs', window.costRecords.packaging, '包装成本');
+                        renderCostSection('platform-costs', window.costRecords.platform, '管理成本');
+                        renderCostSection('accessory-costs', window.costRecords.accessory, '产品成本');
+                    }
+                    // 更新成本数量统计
+                    document.getElementById('express-count').textContent = '0 项';
+                    document.getElementById('platform-count').textContent = '0 项';
+                    document.getElementById('packaging-count').textContent = '0 项';
+                    document.getElementById('accessory-count').textContent = '0 项';
+                }
+                // 清理内存中的costRecords变量
+                if (typeof costRecords !== 'undefined') {
+                    costRecords = {
+                        express: [],
+                        packaging: [],
+                        platform: [],
+                        accessory: []
+                    };
+                }
+                // 清理内存中的costCategories变量
+                if (typeof costCategories !== 'undefined') {
+                    costCategories = {
+                        express: [],
+                        packaging: [],
+                        platform: [],
+                        accessory: []
+                    };
+                }
+                // 清理内存中的costCategories对象
+                if (window.costCategories) {
+                    window.costCategories = {
+                        express: [],
+                        packaging: [],
+                        platform: [],
+                        accessory: []
+                    };
+                }
+                clearedItems += 6; // 增加一个清理项
+            }
+            
+            // 规格成本
+            if (categories.spec) {
+                localStorage.removeItem('skuCosts');
+                // 清理内存中的skuCosts变量
+                if (typeof skuCosts !== 'undefined') {
+                    skuCosts = {};
+                }
+                // 重新渲染规格成本页面
+                if (typeof renderSkuCosts === 'function') {
+                    renderSkuCosts();
+                }
+                clearedItems += 1;
+            }
+            
+            // 店铺管理
+            if (categories.shop) {
+                localStorage.removeItem('platforms');
+                // 清理shops数据
+                localStorage.removeItem('shops');
+                // 清理内存中的shops变量
+                if (typeof shops !== 'undefined') {
+                    shops = [];
+                }
+                // 重新渲染店铺管理页面
+                if (typeof renderShops === 'function') {
+                    renderShops();
+                }
+                clearedItems += 2;
+            }
+            
+            // 采购管理
+            if (categories.purchase) {
+                localStorage.removeItem('detailForms');
+                localStorage.removeItem('purchaseData'); // 清理采购数据
+                // 清理shops中的采购和付款数据
+                const shops = localStorage.getItem('shops');
+                if (shops) {
+                    try {
+                        const shopsData = JSON.parse(shops);
+                        shopsData.forEach(shop => {
+                            delete shop.purchases;
+                            delete shop.payments;
+                        });
+                        localStorage.setItem('shops', JSON.stringify(shopsData));
+                    } catch (e) {
+                        console.error('清理采购数据失败:', e);
+                    }
+                }
+                // 清理内存中的purchaseData变量
+                if (typeof purchaseData !== 'undefined') {
+                    purchaseData = {
+                        suppliers: [],
+                        purchases: [],
+                        payments: []
+                    };
+                }
+                // 重新渲染采购管理页面
+                if (typeof renderPurchaseData === 'function') {
+                    renderPurchaseData();
+                }
+                if (typeof renderPaymentRecords === 'function') {
+                    renderPaymentRecords();
+                }
+                // 重新渲染供应商管理
+                if (typeof renderSuppliers === 'function') {
+                    renderSuppliers();
+                }
+                // 重新渲染明细表单
+                if (typeof renderDetailForms === 'function') {
+                    renderDetailForms();
+                }
+                // 重新渲染采购数据
+                if (typeof renderPurchaseData === 'function') {
+                    renderPurchaseData();
+                }
+                // 重新渲染付款记录
+                if (typeof renderPaymentRecords === 'function') {
+                    renderPaymentRecords();
+                }
+                // 更新内存中的明细表单数据
+                if (window.detailFormsData) {
+                    window.detailFormsData = [];
+                }
+                clearedItems += 2;
+            }
+            
+            // 新品定价
+            if (categories.pricing) {
+                localStorage.removeItem('pricingData');
+                // 更新内存中的数据
+                if (typeof pricingData !== 'undefined') {
+                    pricingData = {
+                        links: [],
+                        products: [],
+                        categories: []
+                    };
+                }
+                // 重新加载新品定价数据
+                if (typeof loadPricingData === 'function') {
+                    loadPricingData();
+                }
+                // 重新渲染分类列表
+                if (typeof renderPricingCategoriesList === 'function') {
+                    renderPricingCategoriesList();
+                }
+                clearedItems += 1;
+            }
+            
+            // 待办笔记
+            if (categories.tasks) {
+                localStorage.removeItem('tasks');
+                localStorage.removeItem('notes');
+                localStorage.removeItem('customLists'); // 待办列表
+                localStorage.removeItem('noteLists'); // 笔记列表
+                // 更新内存中的数据
+                if (typeof tasks !== 'undefined') {
+                    tasks = [];
+                }
+                if (typeof notes !== 'undefined') {
+                    notes = [];
+                }
+                if (typeof customLists !== 'undefined') {
+                    customLists = [];
+                }
+                if (typeof noteLists !== 'undefined') {
+                    noteLists = [];
+                }
+                // 重新渲染待办笔记页面
+                if (typeof renderTasks === 'function') {
+                    renderTasks();
+                }
+                // 重新加载笔记列表
+                if (typeof loadNotes === 'function') {
+                    loadNotes();
+                }
+                // 重新渲染笔记列表
+                if (typeof renderNoteLists === 'function') {
+                    renderNoteLists();
+                }
+                clearedItems += 4;
+            }
+            
+            // 用户数据
+            if (categories.user) {
+                localStorage.removeItem('users');
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('loginHistory');
+                localStorage.removeItem('todayLogin');
+                localStorage.removeItem('userAgreed');
+                clearedItems += 5;
+            }
+            
+            // 配置数据
+            if (categories.config) {
+                localStorage.removeItem('breakEvenAutoCalculation');
+                localStorage.removeItem('sellingPriceLocked');
+                clearedItems += 2;
+            }
+            
+            // 关闭模态框
+            closeClearStorageModal();
+            closeClearConfirmationModal();
+            
+            // 刷新存储信息
+            refreshStorageInfo();
+            
+            // 显示清理结果
+            if (clearedItems > 0) {
+                // 移除alert，改为在页面上显示通知
+                showNotification(`成功清理 ${clearedItems} 个数据项`, 'success');
+            } else {
+                // 移除alert，改为在页面上显示通知
+                showNotification('未选择任何数据进行清理', 'info');
+            }
+        }
     </script>
     
     <div id="delete-shop-confirm-modal" class="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 hidden transition-opacity duration-300" style="z-index: 1001;">
@@ -2282,45 +2747,7 @@
         </div>
     </div>
 
-    <!-- Product Image Upload Modal -->
-    <div id="product-image-modal" class="fixed inset-0 bg-black/0 backdrop-blur-0 flex items-center justify-center z-50 hidden transition-all duration-300 ease-out" style="z-index: 1001;">
-        <div id="product-image-modal-content" class="bg-white/80 backdrop-blur-sm rounded-xl p-6 w-full max-w-lg shadow-xl border border-white/20 transform scale-95 opacity-0 transition-all duration-300 ease-out hover:shadow-2xl">
-            <div class="p-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800">上传产品图片</h3>
-                    <button id="close-product-image-modal" class="text-gray-400 hover:text-gray-600" onclick="closeProductImageModal()">
-                        <i class="fa fa-times"></i>
-                    </button>
-                </div>
-                
-                <div class="mb-4">
-                    <input type="hidden" id="current-product-id">
-                    
-                    <div id="product-image-upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors">
-                        <input type="file" id="product-image-input" accept="image/*" class="hidden">
-                        <i class="fa fa-cloud-upload text-4xl text-gray-400 mb-2"></i>
-                        <p class="text-gray-600 mb-1">点击或拖拽文件到此处上传</p>
-                        <p class="text-xs text-gray-500">支持 JPG, PNG, GIF 格式，最大 3MB，尺寸不超过 1500x1500 像素</p>
-                    </div>
-                    
-                    <div id="product-image-preview-container" class="mt-4 hidden">
-                        <h4 class="text-sm font-medium text-gray-700 mb-2">图片预览</h4>
-                        <div class="relative">
-                            <img id="product-image-preview" class="w-full h-auto rounded-lg max-h-60 object-contain">
-                            <button id="delete-product-image-btn" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors">
-                                <i class="fa fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex justify-end space-x-3">
-                    <button id="cancel-product-image-btn" class="btn btn-secondary" onclick="closeProductImageModal()">取消</button>
-                    <button id="save-product-image-btn" class="btn btn-primary" onclick="saveProductImage()">保存</button>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Delete Note Confirmation Modal -->
     <div id="delete-note-confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" style="z-index: 10001;">
@@ -3655,6 +4082,11 @@
                             <span class="font-bold text-black">账户设置</span>
                         </a>
 
+                        <a href="#" class="flex items-center justify-center py-3 text-gray-600 hover:bg-white hover:rounded-lg mx-2 mt-2" data-settings-nav="storage-space">
+                            <i class="fa fa-hdd-o text-lg mr-3"></i>
+                            <span class="font-bold text-black">存储空间</span>
+                        </a>
+
                         <a href="#" class="flex items-center justify-center py-3 text-gray-600 hover:bg-white hover:rounded-lg mx-2 mt-2" data-settings-nav="usage-help">
                             <i class="fa fa-question-circle text-lg mr-3"></i>
                             <span class="font-bold text-black">使用帮助</span>
@@ -3823,6 +4255,415 @@
                         </div>
                     </div>
                     
+                    <!-- Storage Space Section -->
+                    <div id="storage-space" class="settings-nav-content hidden">
+                        <div class="max-w-6xl">
+                            <div class="bg-white rounded-lg shadow-lg p-8 flex flex-col min-h-[300px]">
+                                <h3 class="text-2xl font-semibold text-gray-800 mb-6">存储空间</h3>
+                                
+                                <!-- Total Storage Info -->
+                                <div class="mb-8">
+                                    <h4 class="text-lg font-medium text-gray-700 mb-4">LocalStorage 存储情况</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="bg-blue-50 p-4 rounded-lg shadow-sm">
+                                            <div class="text-sm text-gray-500">总空间</div>
+                                            <div class="text-2xl font-bold text-blue-600" id="total-storage">5 MB</div>
+                                        </div>
+                                        <div class="bg-green-50 p-4 rounded-lg shadow-sm">
+                                            <div class="text-sm text-gray-500">已用空间</div>
+                                            <div class="text-2xl font-bold text-green-600" id="used-storage">0 MB</div>
+                                        </div>
+                                        <div class="bg-yellow-50 p-4 rounded-lg shadow-sm">
+                                            <div class="text-sm text-gray-500">可用空间</div>
+                                            <div class="text-2xl font-bold text-yellow-600" id="available-storage">5 MB</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Storage Progress Bar -->
+                                    <div class="mt-4">
+                                        <div class="flex justify-between text-sm text-gray-600 mb-1">
+                                            <span>存储使用情况</span>
+                                            <span id="storage-percentage">0%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                            <div id="storage-progress" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Storage Details by Category -->
+                                <div>
+                                    <h4 class="text-lg font-medium text-gray-700 mb-4">各数据板块存储占用明细</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <!-- Data Calculation Area -->
+                                        <div class="bg-white rounded-lg p-4 shadow-md">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <div class="flex items-center">
+                                                    <i class="fa fa-calculator text-blue-500 mr-3"></i>
+                                                    <span class="font-medium">数据计算区</span>
+                                                </div>
+                                                <span id="storage-calculation" class="text-sm text-gray-600">0 KB</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-1.5">
+                                                <div class="bg-blue-500 h-1.5 rounded-full" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Cost Management -->
+                                        <div class="bg-white rounded-lg p-4 shadow-md">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <div class="flex items-center">
+                                                    <i class="fa fa-money text-green-500 mr-3"></i>
+                                                    <span class="font-medium">成本管理</span>
+                                                </div>
+                                                <span id="storage-cost" class="text-sm text-gray-600">0 KB</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-1.5">
+                                                <div class="bg-green-500 h-1.5 rounded-full" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Spec Cost -->
+                                        <div class="bg-white rounded-lg p-4 shadow-md">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <div class="flex items-center">
+                                                    <i class="fa fa-cubes text-purple-500 mr-3"></i>
+                                                    <span class="font-medium">规格成本</span>
+                                                </div>
+                                                <span id="storage-spec" class="text-sm text-gray-600">0 KB</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-1.5">
+                                                <div class="bg-purple-500 h-1.5 rounded-full" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Shop Management -->
+                                        <div class="bg-white rounded-lg p-4 shadow-md">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <div class="flex items-center">
+                                                    <i class="fa fa-shopping-bag text-orange-500 mr-3"></i>
+                                                    <span class="font-medium">店铺管理</span>
+                                                </div>
+                                                <span id="storage-shop" class="text-sm text-gray-600">0 KB</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-1.5">
+                                                <div class="bg-orange-500 h-1.5 rounded-full" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Purchase Management -->
+                                        <div class="bg-white rounded-lg p-4 shadow-md">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <div class="flex items-center">
+                                                    <i class="fa fa-shopping-cart text-red-500 mr-3"></i>
+                                                    <span class="font-medium">采购管理</span>
+                                                </div>
+                                                <span id="storage-purchase" class="text-sm text-gray-600">0 KB</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-1.5">
+                                                <div class="bg-red-500 h-1.5 rounded-full" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- New Product Pricing -->
+                                        <div class="bg-white rounded-lg p-4 shadow-md">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <div class="flex items-center">
+                                                    <i class="fa fa-tag text-yellow-500 mr-3"></i>
+                                                    <span class="font-medium">新品定价</span>
+                                                </div>
+                                                <span id="storage-pricing" class="text-sm text-gray-600">0 KB</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-1.5">
+                                                <div class="bg-yellow-500 h-1.5 rounded-full" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Tasks and Notes -->
+                                        <div class="bg-white rounded-lg p-4 shadow-md">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <div class="flex items-center">
+                                                    <i class="fa fa-sticky-note text-indigo-500 mr-3"></i>
+                                                    <span class="font-medium">待办笔记</span>
+                                                </div>
+                                                <span id="storage-tasks" class="text-sm text-gray-600">0 KB</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-1.5">
+                                                <div class="bg-indigo-500 h-1.5 rounded-full" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- User Data -->
+                                        <div class="bg-white rounded-lg p-4 shadow-md">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <div class="flex items-center">
+                                                    <i class="fa fa-user text-teal-500 mr-3"></i>
+                                                    <span class="font-medium">用户数据</span>
+                                                </div>
+                                                <span id="storage-user" class="text-sm text-gray-600">0 KB</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-1.5">
+                                                <div class="bg-teal-500 h-1.5 rounded-full" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Config Data -->
+                                        <div class="bg-white rounded-lg p-4 shadow-md">
+                                            <div class="flex justify-between items-center mb-2">
+                                                <div class="flex items-center">
+                                                    <i class="fa fa-cog text-gray-500 mr-3"></i>
+                                                    <span class="font-medium">配置数据</span>
+                                                </div>
+                                                <span id="storage-config" class="text-sm text-gray-600">0 KB</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 rounded-full h-1.5">
+                                                <div class="bg-gray-500 h-1.5 rounded-full" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Storage Management Buttons -->
+                                <div class="mt-8 flex flex-wrap gap-4">
+                                    <button onclick="openClearStorageModal()" class="px-6 py-2.5 rounded-xl bg-red-500 text-white flex items-center space-x-2 shadow-[5px_5px_10px_#c53030,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#c53030,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#c53030,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300">
+                                        <i class="fa fa-trash"></i>
+                                        <span>清理存储空间</span>
+                                    </button>
+                                    <button onclick="refreshStorageInfo()" class="px-6 py-2.5 rounded-xl bg-gray-100 text-black flex items-center space-x-2 shadow-[5px_5px_10px_#d1d1d1,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#d1d1d1,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#d1d1d1,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300">
+                                        <i class="fa fa-refresh"></i>
+                                        <span>刷新存储信息</span>
+                                    </button>
+                                    <button onclick="openBackupStorageModal()" class="px-6 py-2.5 rounded-xl bg-[#00BFA5] text-white flex items-center space-x-2 shadow-[5px_5px_10px_#008c7a,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#008c7a,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#008c7a,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300">
+                                        <i class="fa fa-download"></i>
+                                        <span>数据备份</span>
+                                    </button>
+                                    <button onclick="importData()" class="px-6 py-2.5 rounded-xl bg-[#0066FF] text-white flex items-center space-x-2 shadow-[5px_5px_10px_#0047b3,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#0047b3,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#0047b3,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300">
+                                        <i class="fa fa-upload"></i>
+                                        <span>数据导入</span>
+                                    </button>
+                                </div>
+                                
+                                <!-- Data Backup Modal -->
+                                <div id="backup-storage-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                                    <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h3 class="text-xl font-semibold text-gray-800">数据备份</h3>
+                                            <button onclick="closeBackupStorageModal()" class="text-gray-500 hover:text-gray-700">
+                                                <i class="fa fa-times text-xl"></i>
+                                            </button>
+                                        </div>
+                                        <div class="mb-4">
+                                            <p class="text-gray-600 mb-4">请选择要备份的数据板块：</p>
+                                            <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors mb-2">
+                                                <input type="checkbox" id="backup-select-all" class="mr-3 w-4 h-4 text-blue-500 rounded focus:ring-blue-500" checked onchange="toggleAllBackupCategories()">
+                                                <label for="backup-select-all" class="text-gray-700 flex items-center w-full">
+                                                    <i class="fa fa-check-square-o text-blue-500 mr-3 w-5 text-center"></i>
+                                                    <span>全选</span>
+                                                </label>
+                                            </div>
+                                            <div class="space-y-2">
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="backup-calculation" class="mr-3 w-4 h-4 text-blue-500 rounded focus:ring-blue-500 backup-category-checkbox" checked>
+                                                    <label for="backup-calculation" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-calculator text-blue-500 mr-3 w-5 text-center"></i>
+                                                        <span>数据计算区</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="backup-cost" class="mr-3 w-4 h-4 text-green-500 rounded focus:ring-green-500 backup-category-checkbox" checked>
+                                                    <label for="backup-cost" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-money text-green-500 mr-3 w-5 text-center"></i>
+                                                        <span>成本管理</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="backup-spec" class="mr-3 w-4 h-4 text-purple-500 rounded focus:ring-purple-500 backup-category-checkbox" checked>
+                                                    <label for="backup-spec" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-cubes text-purple-500 mr-3 w-5 text-center"></i>
+                                                        <span>规格成本</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="backup-shop" class="mr-3 w-4 h-4 text-orange-500 rounded focus:ring-orange-500 backup-category-checkbox" checked>
+                                                    <label for="backup-shop" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-shopping-bag text-orange-500 mr-3 w-5 text-center"></i>
+                                                        <span>店铺管理</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="backup-purchase" class="mr-3 w-4 h-4 text-red-500 rounded focus:ring-red-500 backup-category-checkbox" checked>
+                                                    <label for="backup-purchase" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-shopping-cart text-red-500 mr-3 w-5 text-center"></i>
+                                                        <span>采购管理</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="backup-pricing" class="mr-3 w-4 h-4 text-yellow-500 rounded focus:ring-yellow-500 backup-category-checkbox" checked>
+                                                    <label for="backup-pricing" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-tag text-yellow-500 mr-3 w-5 text-center"></i>
+                                                        <span>新品定价</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="backup-tasks" class="mr-3 w-4 h-4 text-indigo-500 rounded focus:ring-indigo-500 backup-category-checkbox" checked>
+                                                    <label for="backup-tasks" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-sticky-note text-indigo-500 mr-3 w-5 text-center"></i>
+                                                        <span>待办笔记</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="backup-user" class="mr-3 w-4 h-4 text-teal-500 rounded focus:ring-teal-500 backup-category-checkbox" checked>
+                                                    <label for="backup-user" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-user text-teal-500 mr-3 w-5 text-center"></i>
+                                                        <span>用户数据</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="backup-config" class="mr-3 w-4 h-4 text-gray-500 rounded focus:ring-gray-500 backup-category-checkbox" checked>
+                                                    <label for="backup-config" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-cog text-gray-500 mr-3 w-5 text-center"></i>
+                                                        <span>配置数据</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-end space-x-3">
+                                            <button onclick="closeBackupStorageModal()" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
+                                                取消
+                                            </button>
+                                            <button onclick="performBackup()" class="px-4 py-2.5 rounded-xl bg-[#00BFA5] text-white flex items-center space-x-2 shadow-[5px_5px_10px_#008c7a,-5px_-5px_10px_#ffffff] hover:shadow-[3px_3px_6px_#008c7a,-3px_-3px_6px_#ffffff] active:shadow-[inset_3px_3px_6px_#008c7a,inset_-3px_-3px_6px_#ffffff] transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300">
+                                                <i class="fa fa-download"></i>
+                                                确认备份
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Clear Storage Modal -->
+                                <div id="clear-storage-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                                    <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h3 class="text-xl font-semibold text-gray-800">清理存储空间</h3>
+                                            <button onclick="closeClearStorageModal()" class="text-gray-500 hover:text-gray-700">
+                                                <i class="fa fa-times text-xl"></i>
+                                            </button>
+                                        </div>
+                                        <div class="mb-4">
+                                            <p class="text-gray-600 mb-4">请选择要清理的数据板块：</p>
+                                            <div class="space-y-2">
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="clear-calculation" class="mr-3 w-4 h-4 text-blue-500 rounded focus:ring-blue-500">
+                                                    <label for="clear-calculation" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-calculator text-blue-500 mr-3 w-5 text-center"></i>
+                                                        <span>数据计算区</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="clear-cost" class="mr-3 w-4 h-4 text-green-500 rounded focus:ring-green-500">
+                                                    <label for="clear-cost" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-money text-green-500 mr-3 w-5 text-center"></i>
+                                                        <span>成本管理</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="clear-spec" class="mr-3 w-4 h-4 text-purple-500 rounded focus:ring-purple-500">
+                                                    <label for="clear-spec" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-cubes text-purple-500 mr-3 w-5 text-center"></i>
+                                                        <span>规格成本</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="clear-shop" class="mr-3 w-4 h-4 text-orange-500 rounded focus:ring-orange-500">
+                                                    <label for="clear-shop" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-shopping-bag text-orange-500 mr-3 w-5 text-center"></i>
+                                                        <span>店铺管理</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="clear-purchase" class="mr-3 w-4 h-4 text-red-500 rounded focus:ring-red-500">
+                                                    <label for="clear-purchase" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-shopping-cart text-red-500 mr-3 w-5 text-center"></i>
+                                                        <span>采购管理</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="clear-pricing" class="mr-3 w-4 h-4 text-yellow-500 rounded focus:ring-yellow-500">
+                                                    <label for="clear-pricing" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-tag text-yellow-500 mr-3 w-5 text-center"></i>
+                                                        <span>新品定价</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="clear-tasks" class="mr-3 w-4 h-4 text-indigo-500 rounded focus:ring-indigo-500">
+                                                    <label for="clear-tasks" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-sticky-note text-indigo-500 mr-3 w-5 text-center"></i>
+                                                        <span>待办笔记</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="clear-user" class="mr-3 w-4 h-4 text-teal-500 rounded focus:ring-teal-500">
+                                                    <label for="clear-user" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-user text-teal-500 mr-3 w-5 text-center"></i>
+                                                        <span>用户数据</span>
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                                                    <input type="checkbox" id="clear-config" class="mr-3 w-4 h-4 text-gray-500 rounded focus:ring-gray-500">
+                                                    <label for="clear-config" class="text-gray-700 flex items-center w-full">
+                                                        <i class="fa fa-cog text-gray-500 mr-3 w-5 text-center"></i>
+                                                        <span>配置数据</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-end space-x-3">
+                                            <button onclick="closeClearStorageModal()" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
+                                                取消
+                                            </button>
+                                            <button onclick="showClearConfirmation()" class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600">
+                                                确认清理
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Clear Confirmation Modal -->
+                                <div id="clear-confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                                    <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h3 class="text-xl font-semibold text-gray-800">确认清理</h3>
+                                            <button onclick="closeClearConfirmationModal()" class="text-gray-500 hover:text-gray-700">
+                                                <i class="fa fa-times text-xl"></i>
+                                            </button>
+                                        </div>
+                                        <div class="mb-6">
+                                            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                                                <div class="flex">
+                                                    <div class="flex-shrink-0">
+                                                        <i class="fa fa-exclamation-triangle text-red-500"></i>
+                                                    </div>
+                                                    <div class="ml-3">
+                                                        <p class="text-sm text-red-700 font-medium">重要提示</p>
+                                                        <p class="text-sm text-red-600 mt-1">请谨慎操作，此操作将 永久清除所有数据 ，且 无法找回 。请务必先完成数据备份！</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <p class="text-gray-600">确定要清理选中的数据吗？</p>
+                                        </div>
+                                        <div class="flex justify-end space-x-3">
+                                            <button onclick="closeClearConfirmationModal()" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
+                                                取消
+                                            </button>
+                                            <button id="final-confirm-clear-btn" onclick="performClearStorage()" class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-all duration-300" disabled>
+                                                确认清理 (6s)
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- User Info Main Section -->
                     <div id="user-info-main" class="settings-nav-content">
                         <div class="max-w-6xl">
@@ -3949,7 +4790,7 @@
                             <div class="bg-white rounded-lg shadow-lg p-8 flex flex-col min-h-[300px]">
                                 <div class="mb-8 flex flex-col items-center">
                                     <img src="images/weice_logo.png" alt="未策" class="h-36 mb-4">
-                                    <p class="text-lg text-black font-bold">版本：V1.0.6</p>
+                                    <p class="text-lg text-black font-bold">版本：V1.0.7</p>
                                 </div>
                                 <div class="mt-6">
                                     <div class="flex justify-center space-x-6 items-center">
@@ -32299,7 +33140,7 @@ ${shopsMap[link.shopId]}
                         <div class="p-5">
                             <div class="flex items-start justify-between mb-4">
                                 <div class="flex items-center space-x-3 flex-1 min-w-0">
-                                    <div id="product-image-icon-${item.id}" class="${bgColor} ${textColor} p-3 rounded-lg flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center" style="width: 40px; height: 40px;" onclick="openProductImageModal('${item.id}')">
+                                    <div id="product-image-icon-${item.id}" class="${bgColor} ${textColor} p-3 rounded-lg flex-shrink-0 hover:opacity-80 transition-opacity flex items-center justify-center" style="width: 40px; height: 40px;">
                                         <i class="fa ${icon} text-xl"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
