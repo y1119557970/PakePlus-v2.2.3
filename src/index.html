@@ -1682,43 +1682,8 @@
         
         // 显示通知函数
         function showNotification(message, type = 'info') {
-            // 创建通知元素
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 max-w-md transition-all duration-300 transform translate-y-0 opacity-100`;
-            
-            // 根据类型设置样式
-            switch (type) {
-                case 'success':
-                    notification.className += ' bg-green-500 text-white';
-                    break;
-                case 'error':
-                    notification.className += ' bg-red-500 text-white';
-                    break;
-                case 'warning':
-                    notification.className += ' bg-yellow-500 text-white';
-                    break;
-                default:
-                    notification.className += ' bg-blue-500 text-white';
-            }
-            
-            // 设置通知内容
-            notification.innerHTML = `
-                <div class="flex items-center">
-                    <i class="fa ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'} mr-2"></i>
-                    <span>${message}</span>
-                </div>
-            `;
-            
-            // 添加到页面
-            document.body.appendChild(notification);
-            
-            // 3秒后自动消失
-            setTimeout(() => {
-                notification.classList.add('translate-y-[-20px]', 'opacity-0');
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);
+            // 调用 showToast 函数，使用相同的样式
+            showToast(message, message, type);
         }
         
         // 数据备份函数
@@ -1786,7 +1751,7 @@
                 // 释放URL对象
                 URL.revokeObjectURL(url);
                 
-                showNotification('数据备份成功', 'success');
+                showNotification('数据备份成功！', 'success');
             } catch (error) {
                 console.error('数据备份失败:', error);
                 showNotification('数据备份失败', 'error');
@@ -1809,10 +1774,484 @@
                     try {
                         const backupData = JSON.parse(e.target.result);
                         
-                        // 导入所有数据
+                        // 导入所有数据 - 改为合并数据而非覆盖
                         for (const key in backupData) {
                             if (backupData[key] !== null) {
-                                localStorage.setItem(key, backupData[key]);
+                                const existingData = localStorage.getItem(key);
+                                
+                                // 对于savedData（数据中心），需要合并数组
+                                if (key === 'savedData' && existingData) {
+                                    try {
+                                        console.log('=== 开始合并savedData ===');
+                                        console.log('备份数据(backupData[key]):', backupData[key] ? '存在' : '不存在');
+                                        console.log('现有数据(existingData):', existingData ? '存在' : '不存在');
+                                        
+                                        // 解压备份数据
+                                        let decompressedBackup = LZString.decompress(backupData[key]);
+                                        console.log('解压备份数据方法1结果:', decompressedBackup ? '成功' : '失败');
+                                        if (!decompressedBackup) {
+                                            decompressedBackup = LZString.decompressFromUTF16(backupData[key]);
+                                            console.log('解压备份数据方法2结果:', decompressedBackup ? '成功' : '失败');
+                                        }
+                                        if (!decompressedBackup) {
+                                            decompressedBackup = backupData[key];
+                                            console.log('解压备份数据: 使用原始数据');
+                                        }
+                                        const backupSavedData = JSON.parse(decompressedBackup);
+                                        console.log('解压后备份数据条数:', Array.isArray(backupSavedData) ? backupSavedData.length : '非数组');
+                                        
+                                        // 解压现有数据
+                                        let decompressedExisting = LZString.decompress(existingData);
+                                        console.log('解压现有数据方法1结果:', decompressedExisting ? '成功' : '失败');
+                                        if (!decompressedExisting) {
+                                            decompressedExisting = LZString.decompressFromUTF16(existingData);
+                                            console.log('解压现有数据方法2结果:', decompressedExisting ? '成功' : '失败');
+                                        }
+                                        if (!decompressedExisting) {
+                                            decompressedExisting = existingData;
+                                            console.log('解压现有数据: 使用原始数据');
+                                        }
+                                        const existingSavedData = JSON.parse(decompressedExisting);
+                                        console.log('解压后现有数据条数:', Array.isArray(existingSavedData) ? existingSavedData.length : '非数组');
+                                        
+                                        // 确保两个都是数组
+                                        if (!Array.isArray(backupSavedData) || !Array.isArray(existingSavedData)) {
+                                            console.error('数据类型错误，直接覆盖');
+                                            localStorage.setItem(key, backupData[key]);
+                                        } else {
+                                            // 合并数据：根据id判断，如果备份中有但现有数据中没有的，则添加
+                                            const existingIds = new Set(existingSavedData.map(item => item.id));
+                                            const newItems = backupSavedData.filter(item => !existingIds.has(item.id));
+                                            console.log('新增数据条数:', newItems.length);
+                                            const mergedData = [...existingSavedData, ...newItems];
+                                            console.log('合并后总数据条数:', mergedData.length);
+                                            
+                                            // 压缩并保存合并后的数据
+                                            const compressedMerged = LZString.compressToUTF16(JSON.stringify(mergedData));
+                                            localStorage.setItem(key, compressedMerged);
+                                            console.log('合并后的savedData已保存到localStorage');
+                                        }
+                                    } catch (e) {
+                                        // 如果合并失败，直接覆盖
+                                        console.error('合并savedData失败，直接覆盖:', e);
+                                        localStorage.setItem(key, backupData[key]);
+                                    }
+                                } else if (key === 'recycleBin' && existingData) {
+                                    // 对于recycleBin（回收站），需要合并数组
+                                    try {
+                                        console.log('=== 开始合并recycleBin ===');
+                                        console.log('备份数据:', backupData[key] ? '存在' : '不存在');
+                                        console.log('现有数据:', existingData ? '存在' : '不存在');
+                                        
+                                        // 解压备份数据
+                                        let decompressedBackup = LZString.decompress(backupData[key]);
+                                        if (!decompressedBackup) {
+                                            decompressedBackup = LZString.decompressFromUTF16(backupData[key]);
+                                        }
+                                        if (!decompressedBackup) {
+                                            decompressedBackup = backupData[key];
+                                        }
+                                        const backupRecycleData = JSON.parse(decompressedBackup);
+                                        console.log('解压后备份回收站数据条数:', Array.isArray(backupRecycleData) ? backupRecycleData.length : '非数组');
+                                        
+                                        // 解压现有数据
+                                        let decompressedExisting = LZString.decompress(existingData);
+                                        if (!decompressedExisting) {
+                                            decompressedExisting = LZString.decompressFromUTF16(existingData);
+                                        }
+                                        if (!decompressedExisting) {
+                                            decompressedExisting = existingData;
+                                        }
+                                        const existingRecycleData = JSON.parse(decompressedExisting);
+                                        console.log('解压后现有回收站数据条数:', Array.isArray(existingRecycleData) ? existingRecycleData.length : '非数组');
+                                        
+                                        // 确保两个都是数组
+                                        if (!Array.isArray(backupRecycleData) || !Array.isArray(existingRecycleData)) {
+                                            console.error('回收站数据类型错误，直接覆盖');
+                                            localStorage.setItem(key, backupData[key]);
+                                        } else {
+                                            // 合并数据：根据id判断，如果备份中有但现有数据中没有的，则添加
+                                            const existingIds = new Set(existingRecycleData.map(item => item.id));
+                                            const newItems = backupRecycleData.filter(item => !existingIds.has(item.id));
+                                            console.log('回收站新增数据条数:', newItems.length);
+                                            const mergedData = [...existingRecycleData, ...newItems];
+                                            console.log('回收站合并后总数据条数:', mergedData.length);
+                                            
+                                            // 压缩并保存合并后的数据
+                                            const compressedMerged = LZString.compressToUTF16(JSON.stringify(mergedData));
+                                            localStorage.setItem(key, compressedMerged);
+                                            console.log('合并后的recycleBin已保存到localStorage');
+                                        }
+                                    } catch (e) {
+                                        // 如果合并失败，直接覆盖
+                                        console.error('合并recycleBin失败，直接覆盖:', e);
+                                        localStorage.setItem(key, backupData[key]);
+                                    }
+                                } else if ((key === 'expressCosts' || key === 'platformCosts' || key === 'packagingCosts' || key === 'accessoryCosts') && existingData) {
+                                    // 对于成本管理数据，需要合并数组
+                                    try {
+                                        console.log('=== 开始合并' + key + ' ===');
+                                        const backupCostData = JSON.parse(backupData[key]);
+                                        const existingCostData = JSON.parse(existingData);
+                                        console.log('备份' + key + '数据条数:', Array.isArray(backupCostData) ? backupCostData.length : '非数组');
+                                        console.log('现有' + key + '数据条数:', Array.isArray(existingCostData) ? existingCostData.length : '非数组');
+                                        
+                                        // 确保两个都是数组
+                                        if (!Array.isArray(backupCostData) || !Array.isArray(existingCostData)) {
+                                            console.error(key + '数据类型错误，直接覆盖');
+                                            localStorage.setItem(key, backupData[key]);
+                                        } else {
+                                            // 合并数据：根据name判断（成本数据使用name去重）
+                                            const existingNames = new Set(existingCostData.map(item => item.name.trim().toLowerCase()));
+                                            const newItems = backupCostData.filter(item => !existingNames.has(item.name.trim().toLowerCase()));
+                                            console.log(key + '新增数据条数:', newItems.length);
+                                            const mergedData = [...existingCostData, ...newItems];
+                                            console.log(key + '合并后总数据条数:', mergedData.length);
+                                            
+                                            // 保存合并后的数据
+                                            localStorage.setItem(key, JSON.stringify(mergedData));
+                                            console.log('合并后的' + key + '已保存到localStorage');
+                                        }
+                                    } catch (e) {
+                                        // 如果合并失败，直接覆盖
+                                        console.error('合并' + key + '失败，直接覆盖:', e);
+                                        localStorage.setItem(key, backupData[key]);
+                                    }
+                                } else if (key === 'costRecords' && existingData) {
+                                    // 对于costRecords（成本记录对象），需要合并对象中的数组
+                                    try {
+                                        console.log('=== 开始合并costRecords ===');
+                                        const backupRecords = JSON.parse(backupData[key]);
+                                        const existingRecords = JSON.parse(existingData);
+                                        console.log('备份costRecords数据:', JSON.stringify(backupRecords));
+                                        console.log('现有costRecords数据:', JSON.stringify(existingRecords));
+                                        
+                                        // 确保两个都是对象
+                                        if (typeof backupRecords !== 'object' || typeof existingRecords !== 'object') {
+                                            console.error('costRecords数据类型错误，直接覆盖');
+                                            localStorage.setItem(key, backupData[key]);
+                                        } else {
+                                            // 合并costRecords对象中的每个数组
+                                            const mergedRecords = { ...existingRecords };
+                                            const costTypes = ['express', 'platform', 'packaging', 'accessory'];
+                                            
+                                            for (const type of costTypes) {
+                                                if (backupRecords[type]) {
+                                                    if (!mergedRecords[type]) {
+                                                        mergedRecords[type] = backupRecords[type];
+                                                    } else {
+                                                        // 合并同类数据：根据name判断（成本数据使用name去重）
+                                                        const existingNames = new Set(mergedRecords[type].map(item => item.name.trim().toLowerCase()));
+                                                        const newItems = backupRecords[type].filter(item => !existingNames.has(item.name.trim().toLowerCase()));
+                                                        mergedRecords[type] = [...mergedRecords[type], ...newItems];
+                                                    }
+                                                }
+                                            }
+                                            console.log('合并后costRecords数据:', JSON.stringify(mergedRecords));
+                                            
+                                            // 保存合并后的数据
+                                            localStorage.setItem(key, JSON.stringify(mergedRecords));
+                                            console.log('合并后的costRecords已保存到localStorage');
+                                        }
+                                    } catch (e) {
+                                        // 如果合并失败，直接覆盖
+                                        console.error('合并costRecords失败，直接覆盖:', e);
+                                        localStorage.setItem(key, backupData[key]);
+                                    }
+                                } else if (key === 'costCategories' && existingData) {
+                                    // 对于成本分类管理数据，需要合并对象
+                                    try {
+                                        console.log('=== 开始合并costCategories ===');
+                                        const backupCategories = JSON.parse(backupData[key]);
+                                        const existingCategories = JSON.parse(existingData);
+                                        console.log('备份costCategories数据:', JSON.stringify(backupCategories));
+                                        console.log('现有costCategories数据:', JSON.stringify(existingCategories));
+                                        
+                                        // 确保两个都是对象
+                                        if (typeof backupCategories !== 'object' || typeof existingCategories !== 'object') {
+                                            console.error('costCategories数据类型错误，直接覆盖');
+                                            localStorage.setItem(key, backupData[key]);
+                                        } else {
+                                            // 合并分类数据：遍历备份中的每个分类，现有分类中不存在的添加进去
+                                            const mergedCategories = { ...existingCategories };
+                                            for (const type in backupCategories) {
+                                                if (backupCategories.hasOwnProperty(type)) {
+                                                    if (!mergedCategories[type]) {
+                                                        mergedCategories[type] = backupCategories[type];
+                                                    } else {
+                                                        // 合并同类分类：根据name判断（成本分类没有id，用name去重）
+                                                        const existingNames = new Set(mergedCategories[type].map(item => item.name));
+                                                        const newCategories = backupCategories[type].filter(item => !existingNames.has(item.name));
+                                                        mergedCategories[type] = [...mergedCategories[type], ...newCategories];
+                                                    }
+                                                }
+                                            }
+                                            console.log('合并后costCategories数据:', JSON.stringify(mergedCategories));
+                                            
+                                            // 保存合并后的数据
+                                            localStorage.setItem(key, JSON.stringify(mergedCategories));
+                                            console.log('合并后的costCategories已保存到localStorage');
+                                        }
+                                    } catch (e) {
+                                        // 如果合并失败，直接覆盖
+                                        console.error('合并costCategories失败，直接覆盖:', e);
+                                        localStorage.setItem(key, backupData[key]);
+                                    }
+                                } else if (key === 'skuCosts' && existingData) {
+                                    // 对于skuCosts（规格成本），需要合并对象
+                                    try {
+                                        console.log('=== 开始合并skuCosts ===');
+                                        const backupSkuCosts = JSON.parse(backupData[key]);
+                                        const existingSkuCosts = JSON.parse(existingData);
+                                        console.log('备份skuCosts条数:', Object.keys(backupSkuCosts).length);
+                                        console.log('现有skuCosts条数:', Object.keys(existingSkuCosts).length);
+                                        
+                                        // 确保两个都是对象
+                                        if (typeof backupSkuCosts !== 'object' || typeof existingSkuCosts !== 'object') {
+                                            console.error('skuCosts数据类型错误，直接覆盖');
+                                            localStorage.setItem(key, backupData[key]);
+                                        } else {
+                                            // 合并数据：如果备份中有但现有数据中没有的，则添加
+                                            const mergedSkuCosts = { ...existingSkuCosts };
+                                            let addCount = 0;
+                                            for (const skuCode in backupSkuCosts) {
+                                                if (backupSkuCosts.hasOwnProperty(skuCode)) {
+                                                    if (!mergedSkuCosts.hasOwnProperty(skuCode)) {
+                                                        mergedSkuCosts[skuCode] = backupSkuCosts[skuCode];
+                                                        addCount++;
+                                                    }
+                                                }
+                                            }
+                                            console.log('新增规格成本条数:', addCount);
+                                            console.log('合并后规格成本总条数:', Object.keys(mergedSkuCosts).length);
+                                            
+                                            // 保存合并后的数据
+                                            localStorage.setItem(key, JSON.stringify(mergedSkuCosts));
+                                            console.log('合并后的skuCosts已保存到localStorage');
+                                        }
+                                    } catch (e) {
+                                        // 如果合并失败，直接覆盖
+                                        console.error('合并skuCosts失败，直接覆盖:', e);
+                                        localStorage.setItem(key, backupData[key]);
+                                    }
+                                } else if (key === 'shops' && existingData) {
+                                    try {
+                                        console.log('=== 开始合并shops ===');
+                                        console.log('backupData[key]类型:', typeof backupData[key]);
+                                        const backupShops = JSON.parse(backupData[key]);
+                                        const existingShops = JSON.parse(existingData);
+                                        console.log('备份shops数据条数:', Array.isArray(backupShops) ? backupShops.length : '非数组');
+                                        console.log('现有shops数据条数:', Array.isArray(existingShops) ? existingShops.length : '非数组');
+                                        
+                                        if (!Array.isArray(backupShops) || !Array.isArray(existingShops)) {
+                                            console.error('shops数据类型错误，直接覆盖');
+                                            localStorage.setItem(key, backupData[key]);
+                                        } else {
+                                            const mergedData = [...existingShops];
+                                            let newShopCount = 0;
+                                            let updatedShopCount = 0;
+                                            
+                                            for (const backupShop of backupShops) {
+                                                const existingIndex = mergedData.findIndex(s => s.name.trim().toLowerCase() === backupShop.name.trim().toLowerCase());
+                                                
+                                                if (existingIndex !== -1) {
+                                                    const existingProductIds = new Set(mergedData[existingIndex].productIds || []);
+                                                    const newProductIds = (backupShop.productIds || []).filter(pid => !existingProductIds.has(pid));
+                                                    if (newProductIds.length > 0) {
+                                                        mergedData[existingIndex].productIds = [...mergedData[existingIndex].productIds, ...newProductIds];
+                                                        updatedShopCount++;
+                                                        console.log(`店铺"${backupShop.name}"新增${newProductIds.length}个商品ID`);
+                                                    }
+                                                } else {
+                                                    mergedData.push(backupShop);
+                                                    newShopCount++;
+                                                }
+                                            }
+                                            
+                                            console.log('shops新增店铺条数:', newShopCount);
+                                            console.log('shops更新店铺条数:', updatedShopCount);
+                                            console.log('shops合并后总数据条数:', mergedData.length);
+                                            
+                                            localStorage.setItem(key, JSON.stringify(mergedData));
+                                            console.log('合并后的shops已保存到localStorage');
+                                        }
+                                    } catch (e) {
+                                        console.error('合并shops失败，直接覆盖:', e);
+                                        localStorage.setItem(key, backupData[key]);
+                                    }
+                                } else if (key === 'platforms' && existingData) {
+                                    try {
+                                        console.log('=== 开始合并platforms ===');
+                                        const backupPlatforms = JSON.parse(backupData[key]);
+                                        const existingPlatforms = JSON.parse(existingData);
+                                        console.log('备份platforms数据条数:', Array.isArray(backupPlatforms) ? backupPlatforms.length : '非数组');
+                                        console.log('现有platforms数据条数:', Array.isArray(existingPlatforms) ? existingPlatforms.length : '非数组');
+                                        
+                                        if (!Array.isArray(backupPlatforms) || !Array.isArray(existingPlatforms)) {
+                                            console.error('platforms数据类型错误，直接覆盖');
+                                            localStorage.setItem(key, backupData[key]);
+                                        } else {
+                                            const existingNames = new Set(existingPlatforms.map(item => item.trim().toLowerCase()));
+                                            const newItems = backupPlatforms.filter(item => !existingNames.has(item.trim().toLowerCase()));
+                                            console.log('platforms新增数据条数:', newItems.length);
+                                            const mergedData = [...existingPlatforms, ...newItems];
+                                            console.log('platforms合并后总数据条数:', mergedData.length);
+                                            
+                                            localStorage.setItem(key, JSON.stringify(mergedData));
+                                            console.log('合并后的platforms已保存到localStorage');
+                                        }
+                                    } catch (e) {
+                                        console.error('合并platforms失败，直接覆盖:', e);
+                                        localStorage.setItem(key, backupData[key]);
+                                    }
+                                } else if (key === 'purchaseData' && existingData) {
+                                    try {
+                                        console.log('=== 开始合并purchaseData ===');
+                                        const backupPurchaseData = JSON.parse(backupData[key]);
+                                        const existingPurchaseData = JSON.parse(existingData);
+                                        
+                                        let newSupplierCount = 0;
+                                        let newPurchaseCount = 0;
+                                        let newPaymentCount = 0;
+                                        
+                                        if (!existingPurchaseData.suppliers) existingPurchaseData.suppliers = [];
+                                        if (!existingPurchaseData.purchases) existingPurchaseData.purchases = [];
+                                        if (!existingPurchaseData.paymentRecords) existingPurchaseData.paymentRecords = [];
+                                        
+                                        if (backupPurchaseData.suppliers) {
+                                            const existingSupplierNames = new Set(existingPurchaseData.suppliers.map(s => s.name.trim().toLowerCase()));
+                                            const newSuppliers = backupPurchaseData.suppliers.filter(s => !existingSupplierNames.has(s.name.trim().toLowerCase()));
+                                            existingPurchaseData.suppliers.push(...newSuppliers);
+                                            newSupplierCount = newSuppliers.length;
+                                        }
+                                        
+                                        if (backupPurchaseData.purchases) {
+                                            const existingPurchaseCodes = new Set(existingPurchaseData.purchases.map(p => p.code));
+                                            const newPurchases = backupPurchaseData.purchases.filter(p => !existingPurchaseCodes.has(p.code));
+                                            existingPurchaseData.purchases.push(...newPurchases);
+                                            newPurchaseCount = newPurchases.length;
+                                        }
+                                        
+                                        if (backupPurchaseData.paymentRecords) {
+                                            const existingPaymentIds = new Set(existingPurchaseData.paymentRecords.map(p => p.id));
+                                            const newPayments = backupPurchaseData.paymentRecords.filter(p => !existingPaymentIds.has(p.id));
+                                            existingPurchaseData.paymentRecords.push(...newPayments);
+                                            newPaymentCount = newPayments.length;
+                                        }
+                                        
+                                        console.log('purchaseData新增供应商条数:', newSupplierCount);
+                                        console.log('purchaseData新增采购记录条数:', newPurchaseCount);
+                                        console.log('purchaseData新增付款记录条数:', newPaymentCount);
+                                        
+                                        localStorage.setItem(key, JSON.stringify(existingPurchaseData));
+                                        console.log('合并后的purchaseData已保存到localStorage');
+                                    } catch (e) {
+                                        console.error('合并purchaseData失败，直接覆盖:', e);
+                                        localStorage.setItem(key, backupData[key]);
+                                    }
+                                } else if (key === 'detailForms' && existingData) {
+                                    try {
+                                        console.log('=== 开始合并detailForms ===');
+                                        const backupDetailForms = JSON.parse(backupData[key]);
+                                        const existingDetailForms = JSON.parse(existingData);
+                                        console.log('备份detailForms数据条数:', Array.isArray(backupDetailForms) ? backupDetailForms.length : '非数组');
+                                        console.log('现有detailForms数据条数:', Array.isArray(existingDetailForms) ? existingDetailForms.length : '非数组');
+                                        
+                                        if (!Array.isArray(backupDetailForms) || !Array.isArray(existingDetailForms)) {
+                                            console.error('detailForms数据类型错误，直接覆盖');
+                                            localStorage.setItem(key, backupData[key]);
+                                        } else {
+                                            const existingIds = new Set(existingDetailForms.map(item => item.id));
+                                            const newItems = backupDetailForms.filter(item => !existingIds.has(item.id));
+                                            console.log('detailForms新增数据条数:', newItems.length);
+                                            const mergedData = [...existingDetailForms, ...newItems];
+                                            console.log('detailForms合并后总数据条数:', mergedData.length);
+                                            
+                                            localStorage.setItem(key, JSON.stringify(mergedData));
+                                            console.log('合并后的detailForms已保存到localStorage');
+                                        }
+                                    } catch (e) {
+                                        console.error('合并detailForms失败，直接覆盖:', e);
+                                        localStorage.setItem(key, backupData[key]);
+                                    }
+                                } else if (key === 'pricingData' && existingData) {
+                                    try {
+                                        console.log('=== 开始合并pricingData ===');
+                                        const backupPricingData = JSON.parse(backupData[key]);
+                                        const existingPricingData = JSON.parse(existingData);
+                                        
+                                        let newLinkCount = 0;
+                                        let newProductCount = 0;
+                                        let newCategoryCount = 0;
+                                        
+                                        if (!existingPricingData.links) existingPricingData.links = [];
+                                        if (!existingPricingData.products) existingPricingData.products = [];
+                                        if (!existingPricingData.categories) existingPricingData.categories = [];
+                                        
+                                        if (backupPricingData.categories) {
+                                            const existingCategories = new Set(existingPricingData.categories.map(c => c.trim().toLowerCase()));
+                                            const newCategories = backupPricingData.categories.filter(c => !existingCategories.has(c.trim().toLowerCase()));
+                                            existingPricingData.categories.push(...newCategories);
+                                            newCategoryCount = newCategories.length;
+                                        }
+                                        
+                                        if (backupPricingData.links) {
+                                            const existingLinkIds = new Set(existingPricingData.links.map(l => l.id));
+                                            for (const backupLink of backupPricingData.links) {
+                                                if (!existingLinkIds.has(backupLink.id)) {
+                                                    existingPricingData.links.push(backupLink);
+                                                    newLinkCount++;
+                                                } else {
+                                                    const existingLink = existingPricingData.links.find(l => l.id === backupLink.id);
+                                                    if (backupLink.products && backupLink.products.length > 0) {
+                                                        if (!existingLink.products) existingLink.products = [];
+                                                        const existingProductIds = new Set(existingLink.products.map(p => p.id));
+                                                        const newProducts = backupLink.products.filter(p => !existingProductIds.has(p.id));
+                                                        existingLink.products.push(...newProducts);
+                                                        newProductCount += newProducts.length;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        
+                                        console.log('pricingData新增分类条数:', newCategoryCount);
+                                        console.log('pricingData新增链接条数:', newLinkCount);
+                                        console.log('pricingData新增商品条数:', newProductCount);
+                                        
+                                        localStorage.setItem(key, JSON.stringify(existingPricingData));
+                                        console.log('合并后的pricingData已保存到localStorage');
+                                    } catch (e) {
+                                        console.error('合并pricingData失败，直接覆盖:', e);
+                                        localStorage.setItem(key, backupData[key]);
+                                    }
+                                } else if ((key === 'tasks' || key === 'notes' || key === 'customLists' || key === 'noteLists') && existingData) {
+                                    try {
+                                        console.log('=== 开始合并' + key + ' ===');
+                                        const backupDataArray = JSON.parse(backupData[key]);
+                                        const existingDataArray = JSON.parse(existingData);
+                                        console.log('备份' + key + '数据条数:', Array.isArray(backupDataArray) ? backupDataArray.length : '非数组');
+                                        console.log('现有' + key + '数据条数:', Array.isArray(existingDataArray) ? existingDataArray.length : '非数组');
+                                        
+                                        if (!Array.isArray(backupDataArray) || !Array.isArray(existingDataArray)) {
+                                            console.error(key + '数据类型错误，直接覆盖');
+                                            localStorage.setItem(key, backupData[key]);
+                                        } else {
+                                            const existingIds = new Set(existingDataArray.map(item => item.id));
+                                            const newItems = backupDataArray.filter(item => !existingIds.has(item.id));
+                                            console.log(key + '新增数据条数:', newItems.length);
+                                            const mergedData = [...existingDataArray, ...newItems];
+                                            console.log(key + '合并后总数据条数:', mergedData.length);
+                                            
+                                            localStorage.setItem(key, JSON.stringify(mergedData));
+                                            console.log('合并后的' + key + '已保存到localStorage');
+                                        }
+                                    } catch (e) {
+                                        console.error('合并' + key + '失败，直接覆盖:', e);
+                                        localStorage.setItem(key, backupData[key]);
+                                    }
+                                } else {
+                                    localStorage.setItem(key, backupData[key]);
+                                }
                             }
                         }
                         
@@ -1827,16 +2266,31 @@
                             const platformCosts = localStorage.getItem('platformCosts');
                             const packagingCosts = localStorage.getItem('packagingCosts');
                             const accessoryCosts = localStorage.getItem('accessoryCosts');
+                            const costRecordsData = localStorage.getItem('costRecords');
+                            
                             if (expressCosts) window.costRecords.express = JSON.parse(expressCosts);
                             if (platformCosts) window.costRecords.platform = JSON.parse(platformCosts);
                             if (packagingCosts) window.costRecords.packaging = JSON.parse(packagingCosts);
                             if (accessoryCosts) window.costRecords.accessory = JSON.parse(accessoryCosts);
+                            
+                            // 同时更新costRecords对象，确保两边数据一致
+                            if (costRecordsData) {
+                                const parsedCostRecords = JSON.parse(costRecordsData);
+                                window.costRecords.express = parsedCostRecords.express || window.costRecords.express;
+                                window.costRecords.platform = parsedCostRecords.platform || window.costRecords.platform;
+                                window.costRecords.packaging = parsedCostRecords.packaging || window.costRecords.packaging;
+                                window.costRecords.accessory = parsedCostRecords.accessory || window.costRecords.accessory;
+                            }
+                            
                             if (typeof renderCostSection === 'function') {
                                 renderCostSection('express-costs', window.costRecords.express, '快递成本');
                                 renderCostSection('packaging-costs', window.costRecords.packaging, '包装成本');
                                 renderCostSection('platform-costs', window.costRecords.platform, '管理成本');
                                 renderCostSection('accessory-costs', window.costRecords.accessory, '产品成本');
                             }
+                            
+                            // 保存更新后的costRecords到localStorage
+                            localStorage.setItem('costRecords', JSON.stringify(window.costRecords));
                         }
                         // 成本分类管理 - 更新内存中的成本分类数据
                         const costCategoriesData = localStorage.getItem('costCategories');
@@ -1887,6 +2341,9 @@
                         if (typeof renderDetailForms === 'function') {
                             renderDetailForms();
                         }
+                        if (typeof window.updateDetailFormSelect === 'function') {
+                            window.updateDetailFormSelect();
+                        }
 
                         // 新品定价 - 更新内存中的定价数据
                         if (typeof loadPricingData === 'function') {
@@ -1929,6 +2386,8 @@
                         // 数据计算区 - 更新内存中的数据计算区数据
                         const savedDataLocal = localStorage.getItem('savedData');
                         const recycleBinLocal = localStorage.getItem('recycleBin');
+                        console.log('=== 更新内存中的savedData ===');
+                        console.log('savedDataLocal:', savedDataLocal ? '存在，长度:' + savedDataLocal.length : '不存在');
                         if (typeof savedData !== 'undefined' && savedDataLocal) {
                             // 尝试使用与数据中心相同的方法加载数据
                             try {
@@ -1940,17 +2399,36 @@
                                 }
                                 if (decompressedData) {
                                     savedData = JSON.parse(decompressedData);
+                                    console.log('解压后savedData条数:', savedData.length);
                                 } else {
                                     // 尝试直接解析（可能是未压缩的数据）
                                     savedData = JSON.parse(savedDataLocal);
+                                    console.log('直接解析savedData条数:', savedData.length);
                                 }
                             } catch (parseError) {
                                 console.error('解析savedData失败:', parseError);
                                 savedData = [];
                             }
+                        } else {
+                            console.log('savedData未定义或localStorage中无数据');
                         }
+                        console.log('=== 更新内存中的recycleBin ===');
+                        console.log('recycleBinLocal:', recycleBinLocal ? '存在' : '不存在');
                         if (typeof recycleBin !== 'undefined' && recycleBinLocal) {
-                            recycleBin = JSON.parse(recycleBinLocal);
+                            try {
+                                let decompressedRecycle = LZString.decompress(recycleBinLocal);
+                                if (!decompressedRecycle) {
+                                    decompressedRecycle = LZString.decompressFromUTF16(recycleBinLocal);
+                                }
+                                if (!decompressedRecycle) {
+                                    decompressedRecycle = recycleBinLocal;
+                                }
+                                recycleBin = JSON.parse(decompressedRecycle);
+                                console.log('解压后recycleBin条数:', recycleBin.length);
+                            } catch (e) {
+                                console.error('解析recycleBin失败:', e);
+                                recycleBin = [];
+                            }
                         }
                         if (typeof filteredSavedData !== 'undefined' && savedData) {
                             filteredSavedData = [...savedData];
@@ -1963,6 +2441,7 @@
                             itemsPerPage = 10;
                         }
                         // 重新渲染数据计算区数据
+                        console.log('准备渲染savedData，当前条数:', savedData ? savedData.length : 0);
                         if (typeof renderSavedData === 'function') {
                             renderSavedData();
                         } else if (typeof loadSavedData === 'function') {
@@ -1976,7 +2455,7 @@
                             loadConfig();
                         }
                         
-                        showNotification('数据导入成功', 'success');
+                        showNotification('数据导入成功！', 'success');
                     } catch (error) {
                         console.error('数据导入失败:', error);
                         showNotification('数据导入失败，请确保文件格式正确', 'error');
@@ -2250,10 +2729,8 @@
             
             // 显示清理结果
             if (clearedItems > 0) {
-                // 移除alert，改为在页面上显示通知
-                showNotification(`成功清理 ${clearedItems} 个数据项`, 'success');
+                showNotification('成功清除数据！', 'success');
             } else {
-                // 移除alert，改为在页面上显示通知
                 showNotification('未选择任何数据进行清理', 'info');
             }
         }
@@ -3675,6 +4152,31 @@
         </div>
     </div> 
     
+    <!-- Delete Pricing Category Confirmation Modal -->
+    <div id="delete-pricing-category-confirm-modal" class="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 hidden transition-opacity duration-300" style="z-index: 1001;">
+        <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 w-full max-w-md shadow-xl border border-white/20 transform transition-all duration-300 hover:shadow-2xl">
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">确认删除分类</h3>
+                    <button id="close-delete-pricing-category-confirm-modal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-gray-600">您确定要删除这个分类吗？此操作无法撤销。</p>
+                    <p id="delete-pricing-category-name" class="font-medium text-red-500 mt-2"></p>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button id="cancel-delete-pricing-category-btn" class="btn btn-secondary">取消</button>
+                    <button id="confirm-delete-pricing-category-btn" class="btn btn-danger">
+                        <i class="fa fa-trash"></i> 确认删除
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Edit Link Modal -->
     <div id="edit-link-modal" class="fixed inset-0 bg-black/0 backdrop-blur-0 flex items-center justify-center z-50 hidden transition-all duration-300" style="z-index: 9999; position: fixed; top: 0; left: 0; right: 0; bottom: 0;">
@@ -4260,6 +4762,37 @@
                         <div class="max-w-6xl">
                             <div class="bg-white rounded-lg shadow-lg p-8 flex flex-col min-h-[300px]">
                                 <h3 class="text-2xl font-semibold text-gray-800 mb-6">存储空间</h3>
+                                
+                                <!-- Storage Path Configuration -->
+                                <div class="mb-8 p-4 bg-blue-50 rounded-lg">
+                                    <h4 class="text-lg font-medium text-gray-700 mb-4">存储路径配置</h4>
+                                    <div class="space-y-4">
+                                        <div class="flex flex-col md:flex-row md:items-center gap-4">
+                                            <label class="text-sm font-medium text-gray-700 w-32">存储路径</label>
+                                            <select id="storage-path-select" class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                                <option value="localStorage">LocalStorage (默认)</option>
+                                                <option value="appDataDir">应用数据目录</option>
+                                                <option value="documentsDir">文档目录</option>
+                                                <option value="downloadsDir">下载目录</option>
+                                                <option value="custom">自定义路径</option>
+                                            </select>
+                                        </div>
+                                        <div id="custom-path-container" class="flex flex-col md:flex-row md:items-center gap-4 hidden">
+                                            <label class="text-sm font-medium text-gray-700 w-32">自定义路径</label>
+                                            <div class="flex-1 flex gap-2">
+                                                <input type="text" id="custom-storage-path" class="flex-1 p-2 border border-gray-300 rounded-lg" placeholder="输入自定义存储路径">
+                                                <button id="browse-path-btn" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                                    <i class="fa fa-folder-open mr-1"></i> 浏览
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-end">
+                                            <button id="save-storage-path-btn" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                                保存配置
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                                 
                                 <!-- Total Storage Info -->
                                 <div class="mb-8">
@@ -4992,6 +5525,434 @@
         document.getElementById('close-delete-shop-confirm-modal').addEventListener('click', cancelDeleteShop);
         document.getElementById('cancel-delete-shop-btn').addEventListener('click', cancelDeleteShop);
     });
+    
+    // 存储路径配置
+    document.addEventListener('DOMContentLoaded', function() {
+        const storagePathSelect = document.getElementById('storage-path-select');
+        const customPathContainer = document.getElementById('custom-path-container');
+        const saveStoragePathBtn = document.getElementById('save-storage-path-btn');
+        const browsePathBtn = document.getElementById('browse-path-btn');
+        
+        if (storagePathSelect) {
+            storagePathSelect.addEventListener('change', function() {
+                const selectedPath = this.value;
+                if (selectedPath === 'custom') {
+                    customPathContainer.classList.remove('hidden');
+                } else {
+                    customPathContainer.classList.add('hidden');
+                }
+            });
+        }
+        
+        if (saveStoragePathBtn) {
+            saveStoragePathBtn.addEventListener('click', function() {
+                const selectedPath = storagePathSelect.value;
+                let storagePathConfig = {
+                    storageType: selectedPath
+                };
+                
+                if (selectedPath === 'custom') {
+                    const customPath = document.getElementById('custom-storage-path').value;
+                    if (!customPath) {
+                        showToast('错误', '请输入自定义存储路径', 'error');
+                        return;
+                    }
+                    storagePathConfig.customPath = customPath;
+                }
+                
+                localStorage.setItem('storagePathConfig', JSON.stringify(storagePathConfig));
+                showToast('成功', '存储路径配置已保存', 'success');
+                
+                // 测试Tauri API（用于pakeplus打包）
+                testTauriAPI();
+            });
+        }
+        
+        if (browsePathBtn) {
+            browsePathBtn.addEventListener('click', function() {
+                // 尝试使用PakePlus API打开文件对话框
+                if (window.tauri) {
+                    const { dialog } = window.tauri;
+                    dialog.open({
+                        directory: true,
+                        multiple: false
+                    }).then(path => {
+                        if (path && path.length > 0) {
+                            document.getElementById('custom-storage-path').value = path[0];
+                        }
+                    }).catch(err => {
+                        console.error('打开文件夹失败:', err);
+                        showToast('错误', '无法打开文件夹选择器', 'error');
+                    });
+                } else {
+                    showToast('提示', '此功能需要在桌面应用中使用', 'info');
+                }
+            });
+        }
+        
+        // 测试PakePlus API
+        function testTauriAPI() {
+            if (window.tauri) {
+                console.log('PakePlus API 可用');
+                
+                // 测试路径API
+                const { path } = window.tauri;
+                if (path) {
+                    Promise.all([
+                        path.appDataDir(),
+                        path.documentsDir(),
+                        path.downloadsDir()
+                    ]).then(([appDataDir, documentsDir, downloadsDir]) => {
+                        console.log('应用数据目录:', appDataDir);
+                        console.log('文档目录:', documentsDir);
+                        console.log('下载目录:', downloadsDir);
+                    }).catch(err => {
+                        console.error('获取路径失败:', err);
+                    });
+                }
+                
+                // 测试文件系统API
+                const { fs } = window.tauri;
+                if (fs) {
+                    console.log('文件系统API 可用');
+                }
+            } else {
+                console.log('PakePlus API 不可用，当前在浏览器环境');
+            }
+        }
+        
+        // 加载存储路径配置
+        function loadStoragePathConfig() {
+            const config = localStorage.getItem('storagePathConfig');
+            if (config) {
+                try {
+                    const parsedConfig = JSON.parse(config);
+                    if (storagePathSelect) {
+                        storagePathSelect.value = parsedConfig.storageType || 'localStorage';
+                        
+                        if (parsedConfig.storageType === 'custom' && parsedConfig.customPath) {
+                            document.getElementById('custom-storage-path').value = parsedConfig.customPath;
+                            customPathContainer.classList.remove('hidden');
+                        }
+                    }
+                } catch (e) {
+                    console.error('加载存储路径配置失败:', e);
+                }
+            }
+        }
+        
+        // 初始化存储路径配置
+        loadStoragePathConfig();
+    });
+    
+    // 存储适配器
+    const storageAdapter = {
+        // 保存数据
+        async set(key, value) {
+            const config = JSON.parse(localStorage.getItem('storagePathConfig') || '{}');
+            const storageType = config.storageType || 'localStorage';
+            
+            if (storageType === 'localStorage' || !window.tauri) {
+                // 使用LocalStorage
+                localStorage.setItem(key, JSON.stringify(value));
+                return;
+            }
+            
+            // 使用PakePlus文件系统
+            try {
+                const { fs, path, dialog } = window.tauri;
+                let basePath;
+                
+                switch (storageType) {
+                    case 'appDataDir':
+                        basePath = await path.appDataDir();
+                        break;
+                    case 'documentsDir':
+                        basePath = await path.documentsDir();
+                        break;
+                    case 'downloadsDir':
+                        basePath = await path.downloadsDir();
+                        break;
+                    case 'custom':
+                        basePath = config.customPath;
+                        break;
+                    default:
+                        basePath = await path.appDataDir();
+                }
+                
+                const dataPath = await path.join(basePath, 'xiu-app-data');
+                const filePath = await path.join(dataPath, `${key}.json`);
+                
+                // 确保目录存在
+                if (!await fs.exists(dataPath)) {
+                    await fs.createDir(dataPath, { recursive: true });
+                }
+                
+                // 写入文件
+                await fs.writeFile({
+                    path: filePath,
+                    contents: JSON.stringify(value, null, 2),
+                    options: {}
+                });
+                console.log(`数据已保存到: ${filePath}`);
+            } catch (error) {
+                console.error('保存数据失败:', error);
+                // 回退到LocalStorage
+                localStorage.setItem(key, JSON.stringify(value));
+            }
+        },
+        
+        // 读取数据
+        async get(key, defaultValue = null) {
+            const config = JSON.parse(localStorage.getItem('storagePathConfig') || '{}');
+            const storageType = config.storageType || 'localStorage';
+            
+            if (storageType === 'localStorage' || !window.tauri) {
+                // 使用LocalStorage
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : defaultValue;
+            }
+            
+            // 使用PakePlus文件系统
+            try {
+                const { fs, path } = window.tauri;
+                let basePath;
+                
+                switch (storageType) {
+                    case 'appDataDir':
+                        basePath = await path.appDataDir();
+                        break;
+                    case 'documentsDir':
+                        basePath = await path.documentsDir();
+                        break;
+                    case 'downloadsDir':
+                        basePath = await path.downloadsDir();
+                        break;
+                    case 'custom':
+                        basePath = config.customPath;
+                        break;
+                    default:
+                        basePath = await path.appDataDir();
+                }
+                
+                const dataPath = await path.join(basePath, 'xiu-app-data');
+                const filePath = await path.join(dataPath, `${key}.json`);
+                
+                // 检查文件是否存在
+                if (!await fs.exists(filePath)) {
+                    return defaultValue;
+                }
+                
+                // 读取文件
+                const content = await fs.readTextFile(filePath);
+                return JSON.parse(content);
+            } catch (error) {
+                console.error('读取数据失败:', error);
+                // 回退到LocalStorage
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : defaultValue;
+            }
+        },
+        
+        // 删除数据
+        async remove(key) {
+            const config = JSON.parse(localStorage.getItem('storagePathConfig') || '{}');
+            const storageType = config.storageType || 'localStorage';
+            
+            if (storageType === 'localStorage' || !window.tauri) {
+                // 使用LocalStorage
+                localStorage.removeItem(key);
+                return;
+            }
+            
+            // 使用PakePlus文件系统
+            try {
+                const { fs, path } = window.tauri;
+                let basePath;
+                
+                switch (storageType) {
+                    case 'appDataDir':
+                        basePath = await path.appDataDir();
+                        break;
+                    case 'documentsDir':
+                        basePath = await path.documentsDir();
+                        break;
+                    case 'downloadsDir':
+                        basePath = await path.downloadsDir();
+                        break;
+                    case 'custom':
+                        basePath = config.customPath;
+                        break;
+                    default:
+                        basePath = await path.appDataDir();
+                }
+                
+                const dataPath = await path.join(basePath, 'xiu-app-data');
+                const filePath = await path.join(dataPath, `${key}.json`);
+                
+                // 检查文件是否存在
+                if (await fs.exists(filePath)) {
+                    await fs.removeFile(filePath);
+                }
+            } catch (error) {
+                console.error('删除数据失败:', error);
+                // 回退到LocalStorage
+                localStorage.removeItem(key);
+            }
+        }
+    };
+    
+    // 重写localStorage相关函数，使用存储适配器
+    window.saveData = async function(data) {
+        await storageAdapter.set('savedData', data);
+    };
+    
+    window.loadData = async function() {
+        return await storageAdapter.get('savedData', { calculations: [], version: '1.0' });
+    };
+    
+    window.saveRecycleBin = async function(data) {
+        await storageAdapter.set('recycleBin', data);
+    };
+    
+    window.loadRecycleBin = async function() {
+        return await storageAdapter.get('recycleBin', []);
+    };
+    
+    // 成本管理存储函数
+    window.saveCosts = async function(type, data) {
+        await storageAdapter.set(`${type}Costs`, data);
+    };
+    
+    window.loadCosts = async function(type) {
+        return await storageAdapter.get(`${type}Costs`, []);
+    };
+    
+    window.saveCostCategories = async function(data) {
+        await storageAdapter.set('costCategories', data);
+    };
+    
+    window.loadCostCategories = async function() {
+        return await storageAdapter.get('costCategories', {});
+    };
+    
+    window.saveCostRecords = async function(data) {
+        await storageAdapter.set('costRecords', data);
+    };
+    
+    window.loadCostRecords = async function() {
+        return await storageAdapter.get('costRecords', []);
+    };
+    
+    // 规格成本存储函数
+    window.saveSpecCosts = async function(data) {
+        await storageAdapter.set('specCosts', data);
+    };
+    
+    window.loadSpecCosts = async function() {
+        return await storageAdapter.get('specCosts', []);
+    };
+    
+    // 店铺管理存储函数
+    window.saveShops = async function(data) {
+        await storageAdapter.set('shops', data);
+    };
+    
+    window.loadShops = async function() {
+        return await storageAdapter.get('shops', []);
+    };
+    
+    window.savePlatforms = async function(data) {
+        await storageAdapter.set('platforms', data);
+    };
+    
+    window.loadPlatforms = async function() {
+        return await storageAdapter.get('platforms', []);
+    };
+    
+    // 采购管理存储函数
+    window.saveSuppliers = async function(data) {
+        await storageAdapter.set('suppliers', data);
+    };
+    
+    window.loadSuppliers = async function() {
+        return await storageAdapter.get('suppliers', []);
+    };
+    
+    window.savePurchases = async function(data) {
+        await storageAdapter.set('purchases', data);
+    };
+    
+    window.loadPurchases = async function() {
+        return await storageAdapter.get('purchases', []);
+    };
+    
+    window.savePaymentRecords = async function(data) {
+        await storageAdapter.set('paymentRecords', data);
+    };
+    
+    window.loadPaymentRecords = async function() {
+        return await storageAdapter.get('paymentRecords', []);
+    };
+    
+    window.saveDetailForms = async function(data) {
+        await storageAdapter.set('detailForms', data);
+    };
+    
+    window.loadDetailForms = async function() {
+        return await storageAdapter.get('detailForms', []);
+    };
+    
+    // 新品定价存储函数
+    window.savePricingData = async function(data) {
+        await storageAdapter.set('pricingData', data);
+    };
+    
+    window.loadPricingData = async function() {
+        return await storageAdapter.get('pricingData', { links: [], products: [], categories: [] });
+    };
+    
+    // 待办笔记存储函数
+    window.saveTasks = async function(data) {
+        await storageAdapter.set('tasks', data);
+    };
+    
+    window.loadTasks = async function() {
+        return await storageAdapter.get('tasks', []);
+    };
+    
+    window.saveNotes = async function(data) {
+        await storageAdapter.set('notes', data);
+    };
+    
+    window.loadNotes = async function() {
+        return await storageAdapter.get('notes', []);
+    };
+    
+    window.saveCustomLists = async function(data) {
+        await storageAdapter.set('customLists', data);
+    };
+    
+    window.loadCustomLists = async function() {
+        return await storageAdapter.get('customLists', []);
+    };
+    
+    window.saveNoteLists = async function(data) {
+        await storageAdapter.set('noteLists', data);
+    };
+    
+    window.loadNoteLists = async function() {
+        return await storageAdapter.get('noteLists', []);
+    };
+    
+    // 配置存储函数
+    window.saveConfig = async function(data) {
+        await storageAdapter.set('config', data);
+    };
+    
+    window.loadConfig = async function() {
+        return await storageAdapter.get('config', { theme: 'light', language: 'zh-CN' });
+    };
             // 导入成本项目功能
             document.addEventListener('DOMContentLoaded', function() {
                 // 显示导入模态框
@@ -7766,7 +8727,7 @@
                             updatedTask.needsAttention = true;
                             saveTasks();
                             loadTasks(); // 重新加载任务列表以显示红色标记
-                            showNotification(updatedTask.title);
+                            showTaskNotification(updatedTask.title);
                         }
                         // 无论如何都清除这个定时器的记录
                         delete activeReminders[task.id];
@@ -8240,7 +9201,7 @@
             }
 
             // 显示通知
-            function showNotification(taskTitle) {
+            function showTaskNotification(taskTitle) {
                 if ('Notification' in window) {
                     if (Notification.permission === 'granted') {
                         new Notification('任务提醒', {
@@ -8261,7 +9222,7 @@
                 // 同时显示一个页面内的提示，以防通知被阻止
                 showToast('任务提醒', `任务 "${taskTitle}" 到时间了！`, 'warning');
 
-                // 找到对应的任务并标记为“需要关注”
+                // 找到对应的任务并标记为"需要关注"
                 const task = tasks.find(t => t.title === taskTitle);
                 if (task) {
                     task.needsAttention = true;
@@ -10854,7 +11815,6 @@
             function deletePricingCategory(index) {
                 const category = pricingData.categories[index];
                 
-                // 检查是否有链接或商品使用此分类
                 const isUsed = pricingData.links.some(link => 
                     link.category === category || 
                     link.products.some(product => product.category === category)
@@ -10865,13 +11825,36 @@
                     return;
                 }
                 
-                if (confirm(`确定要删除分类"${category}"吗？`)) {
+                document.getElementById('delete-pricing-category-name').textContent = category;
+                document.getElementById('delete-pricing-category-confirm-modal').classList.remove('hidden');
+                
+                const confirmDelete = function() {
                     pricingData.categories.splice(index, 1);
                     savePricingData();
                     renderPricingCategoriesList();
                     updatePricingCategorySelects();
                     showToast('成功', '分类已删除', 'success');
-                }
+                    document.getElementById('delete-pricing-category-confirm-modal').classList.add('hidden');
+                    removeEventListeners();
+                };
+                
+                const cancelDelete = function() {
+                    document.getElementById('delete-pricing-category-confirm-modal').classList.add('hidden');
+                    removeEventListeners();
+                };
+                
+                const removeEventListeners = function() {
+                    const confirmBtn = document.getElementById('confirm-delete-pricing-category-btn');
+                    const cancelBtn = document.getElementById('cancel-delete-pricing-category-btn');
+                    const closeBtn = document.getElementById('close-delete-pricing-category-confirm-modal');
+                    if (confirmBtn) confirmBtn.onclick = null;
+                    if (cancelBtn) cancelBtn.onclick = null;
+                    if (closeBtn) closeBtn.onclick = null;
+                };
+                
+                document.getElementById('confirm-delete-pricing-category-btn').onclick = confirmDelete;
+                document.getElementById('cancel-delete-pricing-category-btn').onclick = cancelDelete;
+                document.getElementById('close-delete-pricing-category-confirm-modal').onclick = cancelDelete;
             }
             
             function updatePricingCategorySelects() {
