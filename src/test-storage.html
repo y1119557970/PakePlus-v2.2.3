@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>存储功能测试</title>
+    <script src="index.html"></script>
+</head>
+<body>
+    <h1>存储功能测试</h1>
+    <button onclick="testStorage()">测试存储功能</button>
+    <div id="test-result"></div>
+
+    <script>
+        async function testStorage() {
+            const resultDiv = document.getElementById('test-result');
+            resultDiv.innerHTML = '<p>测试中...</p>';
+
+            try {
+                // 测试存储适配器
+                console.log('开始测试存储适配器');
+                
+                // 测试保存数据
+                await storageAdapter.set('testData', { message: '测试数据', timestamp: new Date().toISOString() });
+                console.log('数据保存成功');
+                
+                // 测试读取数据
+                const data = await storageAdapter.get('testData');
+                console.log('数据读取成功:', data);
+                
+                // 测试删除数据
+                await storageAdapter.remove('testData');
+                console.log('数据删除成功');
+                
+                // 测试读取删除后的数据
+                const deletedData = await storageAdapter.get('testData', '默认值');
+                console.log('读取删除后的数据:', deletedData);
+                
+                resultDiv.innerHTML = `
+                    <p style="color: green;">测试成功！</p>
+                    <p>存储适配器工作正常</p>
+                    <p>PakePlus API: ${window.tauri ? '可用' : '不可用'}</p>
+                `;
+            } catch (error) {
+                console.error('测试失败:', error);
+                resultDiv.innerHTML = `
+                    <p style="color: red;">测试失败！</p>
+                    <p>错误: ${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
